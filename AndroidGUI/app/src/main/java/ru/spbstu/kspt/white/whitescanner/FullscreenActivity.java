@@ -1,12 +1,27 @@
 package ru.spbstu.kspt.white.whitescanner;
 
 import android.annotation.SuppressLint;
+import android.content.Context;
+import android.content.pm.PackageManager;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.hardware.Camera;
+import android.hardware.SensorManager;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.MotionEvent;
+import android.view.Surface;
+import android.view.SurfaceHolder;
+import android.view.SurfaceView;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.FrameLayout;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import java.io.IOException;
 
 /**
  * An example full-screen activity that shows and hides the system UI (i.e.
@@ -34,6 +49,11 @@ public class FullscreenActivity extends AppCompatActivity {
     private View mContentView;
     private View mControlsView;
     private boolean mVisible;
+    Preview preview;
+
+    private Sensors sensors;
+
+    private Camera camera;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,9 +61,18 @@ public class FullscreenActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_fullscreen);
 
+        SensorManager sm = (SensorManager)getSystemService(SENSOR_SERVICE);
+
+        sensors = new Sensors(sm, (TextView) findViewById(R.id.compass_value));
+
         mVisible = true;
         mControlsView = findViewById(R.id.fullscreen_content_controls);
         mContentView = findViewById(R.id.fullscreen_content);
+
+        preview = new Preview(this, (SurfaceView)findViewById(R.id.fullscreen_content));
+        preview.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+        ((FrameLayout) findViewById(R.id.layout)).addView(preview);
+        preview.setKeepScreenOn(true);
 
 
         // Set up the user interaction to manually show or hide the system UI.
@@ -68,6 +97,61 @@ public class FullscreenActivity extends AppCompatActivity {
         // created, to briefly hint to the user that UI controls
         // are available.
         delayedHide(100);
+    }
+
+    private int findBackFacingCamera() {
+        int cameraId = -1;
+        //Search for the back facing camera
+        //get the number of cameras
+        int numberOfCameras = Camera.getNumberOfCameras();
+        //for every camera check
+        for (int i = 0; i < numberOfCameras; i++) {
+            Camera.CameraInfo info = new Camera.CameraInfo();
+            Camera.getCameraInfo(i, info);
+            if (info.facing == Camera.CameraInfo.CAMERA_FACING_BACK) {
+                cameraId = i;
+                break;
+            }
+        }
+        return cameraId;
+    }
+
+    private boolean hasCamera(Context context) {
+        //check if the device has camera
+        if (context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA)) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        int numCams = Camera.getNumberOfCameras();
+        if(numCams > 0){
+            try{
+                camera = Camera.open(0);
+                camera.startPreview();
+                preview.setCamera(camera);
+            } catch (RuntimeException ex){
+                Toast.makeText(this, getString(R.string.camera_not_found), Toast.LENGTH_LONG).show();
+            }
+        }
+
+        sensors.registerListener();
+    }
+
+    @Override
+    protected void onPause() {
+        if(camera != null) {
+            camera.stopPreview();
+            preview.setCamera(null);
+            camera.release();
+            camera = null;
+        }
+        sensors.unregisterListener();
+        super.onPause();
     }
 
     /**
