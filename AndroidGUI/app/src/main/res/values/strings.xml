@@ -6,4 +6,9 @@
 
     <string name="camera_not_found">No camera harware found</string>
     <string name="take_photo_help">Touch anywhere on screen to take picture</string>
+
+
+    <string name="model_viewer_title">Model viewer</string>
+    <string name="model_viewer_button">3D model</string>
+    <string name="model_viewer_empty">Here is 3D model</string>
 </resources>

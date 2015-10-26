@@ -2,6 +2,7 @@ package ru.spbstu.kspt.white.whitescanner;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -28,6 +29,7 @@ import java.io.IOException;
  * status bar and navigation/system bar) with user interaction.
  */
 public class FullscreenActivity extends AppCompatActivity {
+    public final static String EXTRA_MESSAGE = "ru.spbstu.kspt.white.whitescanner.MESSAGE";
     /**
      * Whether or not the system UI should be auto-hidden after
      * {@link #AUTO_HIDE_DELAY_MILLIS} milliseconds.
@@ -248,5 +250,13 @@ public class FullscreenActivity extends AppCompatActivity {
     private void delayedHide(int delayMillis) {
         mHideHandler.removeCallbacks(mHideRunnable);
         mHideHandler.postDelayed(mHideRunnable, delayMillis);
+    }
+
+    /** Called when the user clicks the Show model button */
+    public void showModel(View view) {
+        // Do something in response to button
+        Intent intent = new Intent(this, ModelViewer.class);
+        intent.putExtra(EXTRA_MESSAGE, "fromMainScreen");
+        startActivity(intent);
     }
 }
