@@ -29,10 +29,10 @@
             <Button
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/model_viewer_button"
-                android:id="@+id/show_model_button"
+                android:text="@string/show_models_list_button"
+                android:id="@+id/show_models_list_button"
                 style="?metaButtonBarButtonStyle"
-                android:onClick="showModel" />
+                android:onClick="showModelsList" />
 
             <TextView
                 android:id="@+id/compass_value"

@@ -29,7 +29,6 @@ import java.io.IOException;
  * status bar and navigation/system bar) with user interaction.
  */
 public class FullscreenActivity extends AppCompatActivity {
-    public final static String EXTRA_MESSAGE = "ru.spbstu.kspt.white.whitescanner.MESSAGE";
     /**
      * Whether or not the system UI should be auto-hidden after
      * {@link #AUTO_HIDE_DELAY_MILLIS} milliseconds.
@@ -253,10 +252,9 @@ public class FullscreenActivity extends AppCompatActivity {
     }
 
     /** Called when the user clicks the Show model button */
-    public void showModel(View view) {
+    public void showModelsList(View view) {
         // Do something in response to button
-        Intent intent = new Intent(this, ModelViewer.class);
-        intent.putExtra(EXTRA_MESSAGE, "fromMainScreen");
+        Intent intent = new Intent(this, ModelsList.class);
         startActivity(intent);
     }
 }

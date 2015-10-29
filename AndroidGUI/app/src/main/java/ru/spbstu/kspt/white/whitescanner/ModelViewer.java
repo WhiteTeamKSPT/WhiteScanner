@@ -1,7 +1,5 @@
 package ru.spbstu.kspt.white.whitescanner;
 
-//package com.threed.jpct.example;
-
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -15,12 +13,15 @@ import javax.microedition.khronos.opengles.GL10;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.content.res.AssetManager;
 import android.content.res.Resources;
+import android.graphics.drawable.Drawable;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.MotionEvent;
+import android.view.View;
 
 import com.threed.jpct.Camera;
 import com.threed.jpct.FrameBuffer;
@@ -43,7 +44,6 @@ import com.threed.jpct.util.MemoryHelper;
  */
 public class ModelViewer extends AppCompatActivity /*Activity*/ {
 
-
     // Used to handle pause and resume...
     private static ModelViewer master = null;
 
@@ -59,14 +59,16 @@ public class ModelViewer extends AppCompatActivity /*Activity*/ {
     private float xpos = -1;
     private float ypos = -1;
 
-    private Object3D cube = null;
+    private Object3D m_model = null;
     private int fps = 0;
     private boolean gl2 = true;
 
     private Light sun = null;
 
-    private String thingName = "ashtray";
-    private int thingScale = 1;
+    private boolean isForceRefresh = false;
+
+    private String m_modelName = "";
+    private int m_modelScale = 1;
 
     protected void onCreate(Bundle savedInstanceState) {
 
@@ -76,7 +78,14 @@ public class ModelViewer extends AppCompatActivity /*Activity*/ {
             copy(master);
         }
 
+        Intent intent = getIntent();
+        m_modelName = intent.getStringExtra(ModelsList.EXTRA_MESSAGE);
+        isForceRefresh = true;
+
+        setTitle(m_modelName);
+
         super.onCreate(savedInstanceState);
+
         mGLView = new GLSurfaceView(getApplication());
 
         if (gl2) {
@@ -192,7 +201,9 @@ public class ModelViewer extends AppCompatActivity /*Activity*/ {
                 fb = new FrameBuffer(gl, w, h); // OpenGL ES 1.x constructor
             }
 
-            if (master == null) {
+            if (master == null || isForceRefresh) {
+
+                isForceRefresh = false;
 
                 world = new World();
                 world.setAmbientLight(20, 20, 20);
@@ -200,34 +211,42 @@ public class ModelViewer extends AppCompatActivity /*Activity*/ {
                 sun = new Light(world);
                 sun.setIntensity(250, 250, 250);
 
-                // Create a texture out of the icon...:-)
-                Texture texture = new Texture(BitmapHelper.rescale(BitmapHelper.convert(
-                        getResources().getDrawable(R.mipmap.ic_launcher)), 64, 64));
-                TextureManager.getInstance().addTexture("texture", texture);
-
+                // Create a texture
                 try {
-                    //cube = loadModel("assets/" + thingName + ".3ds", thingScale);
-                    InputStream opened_model = getResources().getAssets().open(thingName + ".3ds");
-                    cube = Object3D.mergeAll(Loader.load3DS(opened_model, thingScale));
-                } catch (java.io.IOException e) {
-                    // TODO Auto-generated catch block
+                    Texture texture = new Texture(BitmapHelper.rescale(BitmapHelper.convert(
+                            Drawable.createFromStream(getResources().getAssets().open(m_modelName + ".jpg"), null)), 64, 64));
+                            //getDrawable(R.mipmap.ic_launcher)), 64, 64));
+
+                    if (TextureManager.getInstance().containsTexture("texture"))
+                        TextureManager.getInstance().removeTexture("texture");
+                    TextureManager.getInstance().addTexture("texture", texture);
+                } catch (IOException e) {
                     e.printStackTrace();
                 }
 
-                //cube = Primitives.getCube(10);
-                //cube.calcTextureWrapSpherical();
-                //cube.setTexture("texture");
-                //cube.strip();
-                cube.build();
+                try {
+                    //m_model = loadModel("assets/" + m_modelName + ".3ds", m_modelScale);
+                    InputStream opened_model = getResources().getAssets().open(m_modelName + ".3ds");
+                    m_model = Object3D.mergeAll(Loader.load3DS(opened_model, m_modelScale));
+                } catch (java.io.IOException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                    return;
+                }
 
-                world.addObject(cube);
+                m_model.calcTextureWrapSpherical();
+                m_model.setTexture("texture");
+                m_model.strip();
+                m_model.build();
+
+                world.addObject(m_model);
 
                 Camera cam = world.getCamera();
                 cam.moveCamera(Camera.CAMERA_MOVEOUT, 50);
-                cam.lookAt(cube.getTransformedCenter());
+                cam.lookAt(m_model.getTransformedCenter());
 
                 SimpleVector sv = new SimpleVector();
-                sv.set(cube.getTransformedCenter());
+                sv.set(m_model.getTransformedCenter());
                 sv.y -= 100;
                 sv.z -= 100;
                 sun.setPosition(sv);
@@ -245,12 +264,12 @@ public class ModelViewer extends AppCompatActivity /*Activity*/ {
 
         public void onDrawFrame(GL10 gl) {
             if (touchTurn != 0) {
-                cube.rotateY(touchTurn);
+                m_model.rotateY(touchTurn);
                 touchTurn = 0;
             }
 
             if (touchTurnUp != 0) {
-                cube.rotateX(touchTurnUp);
+                m_model.rotateX(touchTurnUp);
                 touchTurnUp = 0;
             }
 
@@ -269,26 +288,25 @@ public class ModelViewer extends AppCompatActivity /*Activity*/ {
 
         private Object3D loadModel(String filename, float scale) throws UnsupportedEncodingException {
 
-            //InputStream stream = new ByteArrayInputStream(filename.getBytes("UTF-8"));
-            InputStream stream = null;
             try {
-                stream = getResources().getAssets().open(filename, 5);
+                InputStream stream = getResources().getAssets().open(filename, 5);
+                Object3D[] model = Loader.load3DS(stream, scale);
+                Object3D o3d = new Object3D(0);
+                Object3D temp = null;
+                for (int i = 0; i < model.length; i++) {
+                    temp = model[i];
+                    temp.setCenter(SimpleVector.ORIGIN);
+                    temp.rotateX((float)( -.5*Math.PI));
+                    temp.rotateMesh();
+                    temp.setRotationMatrix(new Matrix());
+                    o3d = Object3D.mergeObjects(o3d, temp);
+                    o3d.build();
+                }
+                return o3d;
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            Object3D[] model = Loader.load3DS(stream, scale);
-            Object3D o3d = new Object3D(0);
-            Object3D temp = null;
-            for (int i = 0; i < model.length; i++) {
-                temp = model[i];
-                temp.setCenter(SimpleVector.ORIGIN);
-                temp.rotateX((float)( -.5*Math.PI));
-                temp.rotateMesh();
-                temp.setRotationMatrix(new Matrix());
-                o3d = Object3D.mergeObjects(o3d, temp);
-                o3d.build();
-            }
-            return o3d;
+            return null;
         }
     }
 }

@@ -8,6 +8,8 @@
     <string name="take_photo_help">Touch anywhere on screen to take picture</string>
 
 
+    <string name="models_list_title">Models list</string>
+    <string name="show_models_list_button">Models list</string>
     <string name="model_viewer_title">Model viewer</string>
     <string name="model_viewer_button">3D model</string>
     <string name="model_viewer_empty">Here is 3D model</string>
