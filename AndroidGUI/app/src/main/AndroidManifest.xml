@@ -25,6 +25,26 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".ModelViewer"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:label="@string/model_viewer_title"
+            android:parentActivityName="ru.spbstu.kspt.white.whitescanner.ModelsList"
+            android:theme="@style/FullscreenTheme" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="ru.spbstu.kspt.white.whitescanner.ModelsList" />
+        </activity>
+        <activity
+            android:name=".ModelsList"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:label="@string/models_list_title"
+            android:parentActivityName="ru.spbstu.kspt.white.whitescanner.FullscreenActivity" >
+            android:theme="@style/FullscreenTheme" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="ru.spbstu.kspt.white.whitescanner.FullscreenActivity" />
+        </activity>
     </application>
 
 </manifest>
