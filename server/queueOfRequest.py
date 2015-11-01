@@ -3,13 +3,12 @@ import queue
 import os
 #Очередь заявок клиентов
 class QueueOfRequest:
-    def __init__(self,path,separator):
+    def __init__(self,path):
         self.queue = queue.Queue()
         self.path=path
-        self.separator=separator
     #Добавление новой заявки. Указывается клиент, номер набора, количество фото в наборе
     def put(self,user,set):
-        path=self.path +user+self.separator+set
+        path=os.path.join(self.path,user,set)
         files = os.listdir(path)
         sizeOfPath=len(files)
         self.queue.put({'user': user, 'set': set,'size':sizeOfPath})
