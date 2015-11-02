@@ -1,7 +1,9 @@
-from startSFM import startSFM
+from startSFM import SFM
 
-myoptions = 'sfm'
-mydir = '/home/pitochka/server/Input/test/rabbit'
-myfile = '/home/pitochka/server/Output/rabbit.nvm'
+__OPTIONS__ = 'sfm'
+__INPUTDIR__ = '/home/pitochka/server/Input/test/rabbit'
+__OUTPUTFILE__ = '/home/pitochka/server/Output/rabbit.nvm'
+__SFMDIR__ = '/home/pitochka/server/vsfm/vsfm/bin'
 
-startSFM(myoptions, mydir, myfile)
+a = SFM(__OPTIONS__, __INPUTDIR__, __OUTPUTFILE__, __SFMDIR__)
+a.start()
