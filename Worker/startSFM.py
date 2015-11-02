@@ -7,6 +7,7 @@ class SFM:
         self.input_dir = dir
         self.output_file = file
         self.SFMdir = SFMdir
+        
         if (platform.system() == 'Linux'):
             self.cmd = './VisualSFM ' + str(self.options) +  ' ' + str(self.input_dir) + ' ' + str(self.output_file)
         elif (platform.system() == 'Windows'):
