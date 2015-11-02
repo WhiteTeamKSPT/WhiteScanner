@@ -1,4 +1,5 @@
 import subprocess
+import platform
 
 class SFM:
     def __init__(self, options, dir, file, SFMdir):
@@ -6,7 +7,10 @@ class SFM:
         self.input_dir = dir
         self.output_file = file
         self.SFMdir = SFMdir
-        self.cmd = './VisualSFM ' + str(self.options) +  ' ' + str(self.input_dir) + ' ' + str(self.output_file)
+        if (platform.system() == 'Linux'):
+            self.cmd = './VisualSFM ' + str(self.options) +  ' ' + str(self.input_dir) + ' ' + str(self.output_file)
+        elif (platform.system() == 'Windows'):
+            self.cmd = 'VisualSFM.exe ' + str(self.options) +  ' ' + str(self.input_dir) + ' ' + str(self.output_file)
 
     def start(self):
         """
