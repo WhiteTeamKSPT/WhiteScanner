@@ -1,3 +1,5 @@
+#! /usr/bin/env python 
+# -*- coding: utf-8 -*-  
 import tornado
 import tornado.ioloop
 import tornado.web
@@ -5,19 +7,19 @@ import os
 from queueOfRequest import QueueOfRequest
 import json
 
-__SEPARATOR__= "/"
-__UPLOADS__ = os.path.abspath(os.curdir)+__SEPARATOR__
+__UPLOADS__ = os.path.abspath(os.curdir)
 __PORT__=8000
+__FILENAME__=os.path.join(__UPLOADS__,'pid.txt')
 
 #Загрузка клиентом фотографии. Указывается клиент, номер набора, номер фотографии
 class Upload(tornado.web.RequestHandler):
     def post(self,user,set,number):
         if not os.path.isdir(user):
             os.makedirs(user)
-        setPath=__UPLOADS__ +user+__SEPARATOR__+str(set)
+        setPath=os.path.join(__UPLOADS__,user,str(set))
         if not os.path.isdir(setPath):
             os.makedirs(setPath)
-        fname=setPath+__SEPARATOR__+str(number)
+        fname=os.path.join(setPath,str(number))
         with open(fname, 'wb') as file:
             try:
                 file.write(self.request.body)
@@ -38,7 +40,7 @@ class Task(tornado.web.RequestHandler):
 #Запрос от воркера на загрузку фотографии. Указывается клиент, номер набора, номер фотографии
 class Download(tornado.web.RequestHandler):
     def get(self,user,set,number):
-        with open(__UPLOADS__ +user+__SEPARATOR__+str(set)+__SEPARATOR__+str(number), 'rb') as file:
+        with open(os.path.join(__UPLOADS__ ,user,str(set),+str(number)), 'rb') as file:
             try:
                 image = file.read()
                 self.finish(image)
@@ -53,6 +55,13 @@ application = tornado.web.Application([
 
 
 if __name__ == "__main__":
-    requests=QueueOfRequest(__UPLOADS__ ,__SEPARATOR__)
+#Запись в файл "pid.txt" pid процесса
+    if os.path.isfile(__FILENAME__):
+        print("Process is launched")
+    else:
+        file = open(__FILENAME__, "w")
+        file.write(str(os.getpid()))
+        file.close()
+    requests=QueueOfRequest(__UPLOADS__)
     application.listen(__PORT__)
     tornado.ioloop.IOLoop.instance().start()
