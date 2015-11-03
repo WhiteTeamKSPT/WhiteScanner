@@ -4,7 +4,7 @@ import subprocess
 import platform
 
 class SFM:
-    def __init__(self, options, dir, file, SFMdir):
+    def __init__(self, dir, file, SFMdir, options = 'sfm'):
         self.options = options
         self.input_dir = dir
         self.output_file = file
