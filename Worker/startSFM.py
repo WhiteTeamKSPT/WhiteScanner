@@ -1,3 +1,5 @@
+__author__ = 'pitochka'
+
 import subprocess
 import platform
 
@@ -7,11 +9,14 @@ class SFM:
         self.input_dir = dir
         self.output_file = file
         self.SFMdir = SFMdir
-        
+
         if (platform.system() == 'Linux'):
             self.cmd = './VisualSFM ' + str(self.options) +  ' ' + str(self.input_dir) + ' ' + str(self.output_file)
         elif (platform.system() == 'Windows'):
             self.cmd = 'VisualSFM.exe ' + str(self.options) +  ' ' + str(self.input_dir) + ' ' + str(self.output_file)
+        else:
+            print ('unsupported OS ', platform.system())
+            exit(1)
 
     def start(self):
         """

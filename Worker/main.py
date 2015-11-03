@@ -1,3 +1,5 @@
+__author__ = 'pitochka'
+
 from startSFM import SFM
 
 __OPTIONS__ = 'sfm'
