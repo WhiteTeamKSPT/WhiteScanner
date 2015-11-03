@@ -1,3 +1,5 @@
+#! /usr/bin/env python 
+# -*- coding: utf-8 -*-  
 import tornado
 import tornado.ioloop
 import tornado.web
