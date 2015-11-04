@@ -1,0 +1,25 @@
+<html>
+	<head>
+		<title>{{ escape(title) }}</title>
+	</head>
+	<body>
+		<h1>{{ header }}</h1>
+        <table border="1" width="1000">
+           <tr>
+            <th>User</th>
+            <th>Set</th>
+            <th>Size</th>
+            <th>Images</th>
+           </tr>
+            {% for req in listOfRequests %}
+                <td>{{ req['user'] }}</td><td>{{ req['set'] }}</td><td>{{ req['size'] }}</td>
+                    <td>
+                        {% for im in req['list'] %}
+                        <img width="100" src={{im}}>
+                        {% end %}
+                    </td>
+                </tr>
+            {% end %}
+        </table>
+    </body>
+</html>
