@@ -8,7 +8,7 @@ from queueOfRequest import QueueOfRequest
 from workerSocket import WSWorkerHandler
 
 __UPLOADS__ = os.path.abspath(os.curdir)
-__PORT__=8000
+__PORT__=8080
 __FILENAME__=os.path.join(__UPLOADS__,'pid.txt')
 __PATH_RES__=os.path.join(__UPLOADS__,'result')
 
