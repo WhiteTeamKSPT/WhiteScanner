@@ -72,7 +72,8 @@ application = tornado.web.Application([
         (r"/worker/download/(?P<user>\w+)/(?P<set>\d+)/(?P<number>\d+)", Download),
         (r"/client/result(?P<user>\w+)/(?P<set>\d+)", Result),
         (r"/worker/upload/(?P<user>\w+)/(?P<set>\d+)", UploadResult),
-        (r"/client/upload/(?P<user>\w+)/(?P<set>\d+)/(?P<number>\d+)", Upload)],debug=True)
+        (r"/client/upload/(?P<user>\w+)/(?P<set>\d+)/(?P<number>\d+)", Upload),
+        (r"/content/(.*)", web.StaticFileHandler, {"path": __UPLOADS__})],debug=True)
 
 
 if __name__ == "__main__":
