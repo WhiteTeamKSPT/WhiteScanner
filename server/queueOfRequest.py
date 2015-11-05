@@ -20,6 +20,6 @@ class QueueOfRequest:
                     self.queue.remove(req)
                     break
         for i in files:
-            list.append(os.path.join(self.path,user,set,i))
+            list.append(os.path.join(user,set,i))
         self.queue.append({'user': user, 'set': set,'size':sizeOfPath,'list':list})
 
