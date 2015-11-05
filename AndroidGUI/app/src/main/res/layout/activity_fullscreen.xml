@@ -7,7 +7,7 @@
     <!-- The primary full-screen view. This can be replaced with whatever view
          is needed to present your content, e.g. VideoView, SurfaceView,
          TextureView, etc. -->
-    <SurfaceView android:id="@+id/fullscreen_content" android:layout_width="match_parent"
+    <ru.spbstu.kspt.white.whitescanner.Preview android:id="@+id/fullscreen_content" android:layout_width="match_parent"
         android:layout_height="match_parent" android:keepScreenOn="true"
         android:gravity="center" />
 
@@ -22,17 +22,27 @@
             android:background="@color/black_overlay" android:orientation="horizontal"
             tools:ignore="UselessParent">
 
-            <Button android:id="@+id/dummy_button" style="?metaButtonBarButtonStyle"
-                android:layout_width="0dp" android:layout_height="wrap_content"
-                android:layout_weight="1" android:text="@string/dummy_button" />
-
-            <Button
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/show_models_list_button"
+            <ImageButton
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:adjustViewBounds="true"
+                android:scaleType="fitCenter"
+                android:layout_weight="1"
                 android:id="@+id/show_models_list_button"
                 style="?metaButtonBarButtonStyle"
+                android:src="@drawable/models"
                 android:onClick="showModelsList" />
+
+            <ImageButton
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:adjustViewBounds="true"
+                android:scaleType="fitCenter"
+                android:layout_weight="1"
+                android:id="@+id/upload_icon"
+                style="?metaButtonBarButtonStyle"
+                android:src="@drawable/upload"
+                android:onClick="uploadPhotos" />
 
             <TextView
                 android:id="@+id/compass_value"
@@ -42,13 +52,21 @@
                 android:text="Abc"
                 />
 
-            <TextView
-                android:id="@+id/upload_counter"
-                style="?metaButtonBarButtonStyle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="  0"
-                />
+            <!--<TextView-->
+                <!--android:id="@+id/upload_counter"-->
+                <!--style="?metaButtonBarButtonStyle"-->
+                <!--android:layout_width="wrap_content"-->
+                <!--android:layout_height="wrap_content"-->
+                <!--android:layout_weight="0"-->
+                <!--android:text="0"-->
+                <!--/>-->
+
+            <ImageButton android:id="@+id/dummy_button" style="?metaButtonBarButtonStyle"
+                android:layout_width="50dp" android:layout_height="50dp"
+                android:adjustViewBounds="true"
+                android:scaleType="fitCenter"
+                android:layout_weight="10"
+                android:src="@drawable/camera" />
 
         </LinearLayout>
     </FrameLayout>

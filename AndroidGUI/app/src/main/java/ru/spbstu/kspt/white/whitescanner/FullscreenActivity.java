@@ -1,5 +1,6 @@
 package ru.spbstu.kspt.white.whitescanner;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
@@ -8,10 +9,14 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.hardware.Camera;
 import android.hardware.SensorManager;
+import android.os.AsyncTask;
+import android.support.annotation.Nullable;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.Surface;
 import android.view.SurfaceHolder;
@@ -23,12 +28,19 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.ArrayList;
 
 /**
  * An example full-screen activity that shows and hides the system UI (i.e.
  * status bar and navigation/system bar) with user interaction.
  */
 public class FullscreenActivity extends AppCompatActivity {
+    private static final String COMPONENT = "FullscreenActivity";
+
     /**
      * Whether or not the system UI should be auto-hidden after
      * {@link #AUTO_HIDE_DELAY_MILLIS} milliseconds.
@@ -56,6 +68,9 @@ public class FullscreenActivity extends AppCompatActivity {
 
     private Camera camera;
 
+    private ArrayList<byte[]> jpegs = new ArrayList<>();
+    private int setCounter = 1;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -70,10 +85,11 @@ public class FullscreenActivity extends AppCompatActivity {
         mControlsView = findViewById(R.id.fullscreen_content_controls);
         mContentView = findViewById(R.id.fullscreen_content);
 
-        preview = new Preview(this, (SurfaceView)findViewById(R.id.fullscreen_content));
-        preview.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
-        ((FrameLayout) findViewById(R.id.layout)).addView(preview);
-        preview.setKeepScreenOn(true);
+        preview = (Preview) findViewById(R.id.fullscreen_content);
+        camera = preview.getCamera();
+//        preview.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+//        ((FrameLayout) findViewById(R.id.layout)).addView(preview);
+//        preview.setKeepScreenOn(true);
 
 
         // Set up the user interaction to manually show or hide the system UI.
@@ -129,28 +145,41 @@ public class FullscreenActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        int numCams = Camera.getNumberOfCameras();
-        if(numCams > 0){
-            try{
-                camera = Camera.open(0);
-                camera.startPreview();
-                preview.setCamera(camera);
-            } catch (RuntimeException ex){
-                Toast.makeText(this, getString(R.string.camera_not_found), Toast.LENGTH_LONG).show();
-            }
+
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
+                != PackageManager.PERMISSION_GRANTED) {
+            // Camera permission has not been granted.
+
+            requestCameraPermission();
+
         }
+
+        camera = preview.getCamera();
+        preview.configureCamera(getResources().getConfiguration());
+
+//        int numCams = Camera.getNumberOfCameras();
+//        if(numCams > 0){
+//            try{
+//                preview.startCamera();
+//            } catch (RuntimeException ex){
+//                Toast.makeText(this, getString(R.string.camera_not_found), Toast.LENGTH_LONG).show();
+//            }
+//        }
 
         sensors.registerListener();
     }
 
+    private void requestCameraPermission() {
+        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA}, 0);
+    }
+
+    private void shortToast(String message) {
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+    }
+
     @Override
     protected void onPause() {
-        if(camera != null) {
-            camera.stopPreview();
-            preview.setCamera(null);
-            camera.release();
-            camera = null;
-        }
+        preview.stopCamera();
         sensors.unregisterListener();
         super.onPause();
     }
@@ -166,6 +195,10 @@ public class FullscreenActivity extends AppCompatActivity {
             if (AUTO_HIDE) {
                 delayedHide(AUTO_HIDE_DELAY_MILLIS);
             }
+            if (motionEvent.getAction() != MotionEvent.ACTION_DOWN) {
+                return false;
+            }
+            preview.camera.takePicture(null, null, jpegCallback);
             return false;
         }
     };
@@ -222,6 +255,15 @@ public class FullscreenActivity extends AppCompatActivity {
         mHideHandler.postDelayed(mShowPart2Runnable, UI_ANIMATION_DELAY);
     }
 
+    Camera.PictureCallback jpegCallback = new Camera.PictureCallback() {
+        public void onPictureTaken(byte[] data, Camera cam) {
+            jpegs.add(data);
+            shortToast("Got picture number " + Integer.toString(jpegs.size()));
+            Log.d(COMPONENT, "onPictureTaken - jpeg");
+            preview.camera.startPreview();
+        }
+    };
+
     private final Runnable mShowPart2Runnable = new Runnable() {
         @Override
         public void run() {
@@ -256,5 +298,99 @@ public class FullscreenActivity extends AppCompatActivity {
         // Do something in response to button
         Intent intent = new Intent(this, ModelsList.class);
         startActivity(intent);
+    }
+
+    public void uploadPhotos(View view) {
+        Log.d(COMPONENT, "Uploading");
+        shortToast("Uploading photos");
+        new UploadPhotoTask().execute();
+    }
+
+    private String makeUploadURL(String user, int set, int number) {
+        final String BASE_URL = "http://whiteteam.cloudapp.net:8080";
+        final String UPLOAD_PATH = "/client/upload";
+
+        return BASE_URL + UPLOAD_PATH + "/" + user + "/" + set + "/" + number;
+    }
+
+    private String makeFinishURL(String user, int set) {
+        final String BASE_URL = "http://whiteteam.cloudapp.net:8080";
+        final String UPLOAD_PATH = "/client/finished";
+
+        return BASE_URL + UPLOAD_PATH + "/" + user + "/" + set;
+    }
+
+    // Given a URL, establishes an HttpUrlConnection and retrieves
+    // the web page content as a InputStream, which it returns as
+    // a string.
+    private void doPOST(String uploadURL, @Nullable byte[] payload) throws IOException {
+        OutputStream os = null;
+        Log.d(COMPONENT, "Do POST to " + uploadURL);
+
+        try {
+            URL url = new URL(uploadURL);
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setReadTimeout(10000 /* milliseconds */);
+            conn.setConnectTimeout(15000 /* milliseconds */);
+            conn.setRequestMethod("POST");
+            conn.setDoOutput(true);
+            if (payload != null) {
+                Log.d(COMPONENT, "Payload size is  " + payload.length);
+                conn.setFixedLengthStreamingMode(payload.length);
+            }
+            // Starts the query
+            conn.connect();
+            os = conn.getOutputStream();
+            if (payload != null) {
+                os.write(payload);
+            }
+            os.flush();
+            os.close();
+
+            int response = conn.getResponseCode();
+            Log.d(COMPONENT, "The response is: " + response);
+
+            // Makes sure that the InputStream is closed after the app is
+            // finished using it.
+        } finally {
+            if (os != null) {
+                os.close();
+            }
+        }
+    }
+
+    // Uses AsyncTask to create a task away from the main UI thread. This task takes a
+    // URL string and uses it to create an HttpUrlConnection. Once the connection
+    // has been established, the AsyncTask downloads the contents of the webpage as
+    // an InputStream. Finally, the InputStream is converted into a string, which is
+    // displayed in the UI by the AsyncTask's onPostExecute method.
+    private class UploadPhotoTask extends AsyncTask<Void, Void, Boolean> {
+
+        @Override
+        protected Boolean doInBackground(Void... params) {
+
+            // params comes from the execute() call: params[0] is the url.
+            try {
+                for (int i = 0; i < jpegs.size(); i++) {
+                    byte[] photo = jpegs.get(i);
+                    String url = makeUploadURL("user", setCounter, i);
+                    doPOST(url, photo);
+                }
+                String finish = makeFinishURL("user", setCounter);
+                doPOST(finish, null);
+                setCounter++;
+                jpegs.clear();
+            } catch (IOException e) {
+                Log.e(COMPONENT, e.toString());
+                return false;
+            }
+            return true;
+        }
+        // onPostExecute displays the results of the AsyncTask.
+        @Override
+        protected void onPostExecute(Boolean result) {
+//            TextView view = (TextView) findViewById(R.id.upload_counter);
+//            view.setText(result ? "Done" : "Failed");
+        }
     }
 }

@@ -5,8 +5,14 @@ package ru.spbstu.kspt.white.whitescanner;
  */
 
 import android.content.Context;
+import android.content.res.Configuration;
+import android.graphics.Point;
 import android.hardware.Camera;
+import android.os.Build;
+import android.util.AttributeSet;
 import android.util.Log;
+import android.view.Display;
+import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
@@ -30,149 +36,188 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 
-class Preview extends ViewGroup implements SurfaceHolder.Callback {
-    private final String TAG = "Preview";
+/**
+ * Author: Artemiy Garin
+ * Date: 16.10.13
+ */
+@SuppressWarnings("CanBeFinal")
+public class Preview extends SurfaceView implements SurfaceHolder.Callback {
 
-    SurfaceView mSurfaceView;
-    SurfaceHolder mHolder;
-    Camera.Size mPreviewSize;
-    List<Camera.Size> mSupportedPreviewSizes;
-    Camera mCamera;
+    private static final int DEGREES_0 = 0;
+    private static final int DEGREES_90 = 90;
+    private static final int DEGREES_180 = 180;
+    private static final int DEGREES_270 = 270;
 
-    Preview(Context context, SurfaceView sv) {
+    private SurfaceHolder surfaceHolder;
+    public Camera camera;
+    private Camera.PreviewCallback previewCallback;
+    private Display display;
+
+    @SuppressWarnings({"deprecation", "ConstantConditions"})
+    public Preview(Context context) {
         super(context);
-
-        mSurfaceView = sv;
-//        addView(mSurfaceView);
-
-        mHolder = mSurfaceView.getHolder();
-        mHolder.addCallback(this);
-        mHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
+        init(context);
     }
 
-    public void setCamera(Camera camera) {
-        mCamera = camera;
-        if (mCamera != null) {
-            mSupportedPreviewSizes = mCamera.getParameters().getSupportedPreviewSizes();
-            requestLayout();
-
-            // get Camera parameters
-            Camera.Parameters params = mCamera.getParameters();
-
-            List<String> focusModes = params.getSupportedFocusModes();
-            if (focusModes.contains(Camera.Parameters.FOCUS_MODE_AUTO)) {
-                // set the focus mode
-                params.setFocusMode(Camera.Parameters.FOCUS_MODE_AUTO);
-                // set Camera parameters
-                mCamera.setParameters(params);
-            }
-        }
+    public Preview(Context context, AttributeSet set) {
+        super(context, set);
+        init(context);
     }
 
-    @Override
-    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        // We purposely disregard child measurements because act as a
-        // wrapper to a SurfaceView that centers the camera preview instead
-        // of stretching it.
-        final int width = resolveSize(getSuggestedMinimumWidth(), widthMeasureSpec);
-        final int height = resolveSize(getSuggestedMinimumHeight(), heightMeasureSpec);
-        setMeasuredDimension(width, height);
+    public void init(Context context) {
+        this.previewCallback = null;
+        display = ((WindowManager) context.getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
 
-        if (mSupportedPreviewSizes != null) {
-            mPreviewSize = getOptimalPreviewSize(mSupportedPreviewSizes, width, height);
-        }
-    }
+        surfaceHolder = getHolder();
+        surfaceHolder.addCallback(this);
+        surfaceHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
 
-    @Override
-    protected void onLayout(boolean changed, int l, int t, int r, int b) {
-        if (changed && getChildCount() > 0) {
-            final View child = getChildAt(0);
-
-            final int width = r - l;
-            final int height = b - t;
-
-            int previewWidth = width;
-            int previewHeight = height;
-            if (mPreviewSize != null) {
-                previewWidth = mPreviewSize.width;
-                previewHeight = mPreviewSize.height;
-            }
-
-            // Center the child SurfaceView within the parent.
-            if (width * previewHeight > height * previewWidth) {
-                final int scaledChildWidth = previewWidth * height / previewHeight;
-                child.layout((width - scaledChildWidth) / 2, 0,
-                        (width + scaledChildWidth) / 2, height);
-            } else {
-                final int scaledChildHeight = previewHeight * width / previewWidth;
-                child.layout(0, (height - scaledChildHeight) / 2,
-                        width, (height + scaledChildHeight) / 2);
-            }
-        }
+        setKeepScreenOn(true);
+        configureCamera(getResources().getConfiguration());
     }
 
     public void surfaceCreated(SurfaceHolder holder) {
-        // The Surface has been created, acquire the camera and tell it where
-        // to draw.
         try {
-            if (mCamera != null) {
-                mCamera.setPreviewDisplay(holder);
-            }
-        } catch (IOException exception) {
-            Log.e(TAG, "IOException caused by setPreviewDisplay()", exception);
+            camera.setPreviewDisplay(holder);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
     public void surfaceDestroyed(SurfaceHolder holder) {
-        // Surface will be destroyed when we return, so stop the preview.
-        if (mCamera != null) {
-            mCamera.stopPreview();
-        }
+        stopCamera();
     }
 
+    public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+        startCamera();
+    }
 
-    private Camera.Size getOptimalPreviewSize(List<Camera.Size> sizes, int w, int h) {
-        final double ASPECT_TOLERANCE = 0.1;
-        double targetRatio = (double) w / h;
-        if (sizes == null) return null;
-
-        Camera.Size optimalSize = null;
-        double minDiff = Double.MAX_VALUE;
-
-        int targetHeight = h;
-
-        // Try to find an size match aspect ratio and size
-        for (Camera.Size size : sizes) {
-            double ratio = (double) size.width / size.height;
-            if (Math.abs(ratio - targetRatio) > ASPECT_TOLERANCE) continue;
-            if (Math.abs(size.height - targetHeight) < minDiff) {
-                optimalSize = size;
-                minDiff = Math.abs(size.height - targetHeight);
-            }
+    public Camera getCamera() {
+        try {
+            camera = Camera.open();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
+        return camera;
+    }
 
-        // Cannot find the one match the aspect ratio, ignore the requirement
-        if (optimalSize == null) {
-            minDiff = Double.MAX_VALUE;
-            for (Camera.Size size : sizes) {
-                if (Math.abs(size.height - targetHeight) < minDiff) {
-                    optimalSize = size;
-                    minDiff = Math.abs(size.height - targetHeight);
+    @SuppressWarnings({"ConstantConditions"})
+    public boolean configureCamera(Configuration configuration) {
+        try {
+            getCamera();
+            if (camera != null) {
+                int width = getScreenWidth();
+                int height = getScreenHeight();
+
+                int displayOrientationDegrees = getDisplayOrientationDegrees(display);
+                camera.setDisplayOrientation(displayOrientationDegrees);
+
+                Camera.Size previewSize = camera.getParameters().getPreviewSize();
+                float aspect = (float) previewSize.width / previewSize.height;
+
+                ViewGroup.LayoutParams cameraHolderParams = getLayoutParams();
+                if (configuration.orientation == Configuration.ORIENTATION_PORTRAIT) {
+                    cameraHolderParams.width = width;
+                    cameraHolderParams.height = (int) (width * aspect);
+//                    cameraHolderParams.height = height;
+//                    cameraHolderParams.width = (int) (height / aspect);
+                } else {
+                    cameraHolderParams.height = height;
+                    cameraHolderParams.width = (int) (height * aspect);
+//                    cameraHolderParams.width = width;
+//                    cameraHolderParams.height = (int) (width / aspect);
                 }
+
+                setLayoutParams(cameraHolderParams);
+
+                return true;
             }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-        return optimalSize;
+
+        return false;
     }
 
-    public void surfaceChanged(SurfaceHolder holder, int format, int w, int h) {
-        if(mCamera != null) {
-            Camera.Parameters parameters = mCamera.getParameters();
-            parameters.setPreviewSize(mPreviewSize.width, mPreviewSize.height);
-            requestLayout();
+    @SuppressWarnings("deprecation")
+    private int getScreenWidth() {
+        if (android.os.Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB_MR2)
+            return display.getWidth();
+        else {
+            Point size = new Point();
+            display.getSize(size);
+            return size.x;
+        }
+    }
 
-            // mCamera.setParameters(parameters);
-            mCamera.startPreview();
+    @SuppressWarnings("deprecation")
+    private int getScreenHeight() {
+        if (android.os.Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB_MR2)
+            return display.getHeight();
+        else {
+            Point size = new Point();
+            display.getSize(size);
+            return size.y;
+        }
+    }
+
+    @SuppressWarnings("ConstantConditions")
+    private int getDisplayOrientationDegrees(Display display) {
+        int displayOrientationDegrees;
+        int orientation = getResources().getConfiguration().orientation;
+
+        switch (display.getRotation()) {
+            case Surface.ROTATION_0:
+                if (orientation == Configuration.ORIENTATION_PORTRAIT)
+                    displayOrientationDegrees = DEGREES_90;
+                else displayOrientationDegrees = DEGREES_0;
+                break;
+            case Surface.ROTATION_90:
+                if (orientation == Configuration.ORIENTATION_LANDSCAPE)
+                    displayOrientationDegrees = DEGREES_0;
+                else displayOrientationDegrees = DEGREES_270;
+                break;
+            case Surface.ROTATION_180:
+                if (orientation == Configuration.ORIENTATION_PORTRAIT)
+                    displayOrientationDegrees = DEGREES_270;
+                else displayOrientationDegrees = DEGREES_180;
+                break;
+            case Surface.ROTATION_270:
+                if (orientation == Configuration.ORIENTATION_LANDSCAPE)
+                    displayOrientationDegrees = DEGREES_180;
+                else displayOrientationDegrees = DEGREES_90;
+                break;
+            default:
+                displayOrientationDegrees = DEGREES_0;
+        }
+
+        return displayOrientationDegrees;
+    }
+
+    @SuppressWarnings("WeakerAccess")
+    public void stopCamera() {
+        try {
+            camera.stopPreview();
+            camera.setPreviewCallback(null);
+            camera.release();
+            camera = null;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @SuppressWarnings("WeakerAccess")
+    public void startCamera() {
+        try {
+            if (surfaceHolder.getSurface() == null) return;
+            camera.reconnect();
+            camera.setPreviewDisplay(surfaceHolder);
+            if (previewCallback != null) camera.setPreviewCallback(previewCallback);
+            camera.startPreview();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
