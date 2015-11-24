@@ -18,7 +18,7 @@ class SFM:
             print ('unsupported OS ', platform.system())
             exit(1)
 
-    def start(self):
+    def __call__(self):
         """
         Starts VisualSFM with input parameters
 

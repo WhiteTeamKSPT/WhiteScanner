@@ -4,16 +4,21 @@ import requests
 import os
 from time import sleep
 
-__SERVER__ = 'whiteteam.cloudapp.com'
+__SERVER__ = 'http://whiteteam.cloudapp.com:8000'
 __TASKS__  = '/worker/tasks'
 __IMAGES__ = '/worker/download'
 __UPLOADS__ = '/home/pitochka/server/Input'
 
 class getTask():
-    def get(self):
+    def __init__(self):
+        pass
+
+    def __call__(self):
         while True:
-            self.info = requests.get(str(__SERVER__) + str(__TASKS__))
+            print __SERVER__ + __TASKS__
+            self.info = requests.get(__SERVER__ + __TASKS__)
             if not self.info:
+                print 'waiting...'
                 sleep(15)
             else:
                 print 'task recived'
@@ -23,13 +28,18 @@ class getTask():
                 user = self.listinfo["user"]
                 set = self.listinfo["set"]
                 size = self.listinfo["size"]
+                print user, set, size
 
 class getImages():
-    def get(self, user, set, size):
-        if not os.path.isdir(os.path.join(__UPLOADS__, user)):
-            os.makedirs(user)
-        setPath=os.path.join(__UPLOADS__,user,str(set))
+    def __init__(self):
+        pass
+
+    def __call__(self, user, set, size):
+        setPath = os.path.join(__UPLOADS__, user)
         if not os.path.isdir(setPath):
             os.makedirs(setPath)
-        # Дальше создаю каталог для пользователя, если не создан, заливаю туда фотки и вызываю сфм
-        # класс для вызова СФМ в startSFM.py, из main.py все вызывается
+
+        setPath=os.path.join(setPath, str(set))
+        if not os.path.isdir(setPath):
+            os.makedirs(setPath)
+
