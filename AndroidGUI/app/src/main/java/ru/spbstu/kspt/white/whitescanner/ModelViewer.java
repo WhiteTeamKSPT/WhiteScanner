@@ -21,6 +21,7 @@ import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.MotionEvent;
+import android.view.ScaleGestureDetector;
 import android.view.View;
 
 import com.threed.jpct.Camera;
@@ -47,6 +48,8 @@ public class ModelViewer extends AppCompatActivity /*Activity*/ {
     // Used to handle pause and resume...
     private static ModelViewer master = null;
 
+    private static String c_modelFormat = ".3ds";
+
     private GLSurfaceView mGLView;
     private MyRenderer renderer = null;
     private FrameBuffer fb = null;
@@ -69,6 +72,9 @@ public class ModelViewer extends AppCompatActivity /*Activity*/ {
 
     private String m_modelName = "";
     private int m_modelScale = 1;
+    private float mScaleFactor = 0.5f;
+
+    ScaleGestureDetector mScaleDetector;
 
     protected void onCreate(Bundle savedInstanceState) {
 
@@ -110,6 +116,8 @@ public class ModelViewer extends AppCompatActivity /*Activity*/ {
         renderer = new MyRenderer();
         mGLView.setRenderer(renderer);
         setContentView(mGLView);
+
+        mScaleDetector = new ScaleGestureDetector(this, new ScaleListener());
     }
 
     @Override
@@ -143,6 +151,8 @@ public class ModelViewer extends AppCompatActivity /*Activity*/ {
     }
 
     public boolean onTouchEvent(MotionEvent me) {
+
+        mScaleDetector.onTouchEvent(me);
 
         if (me.getAction() == MotionEvent.ACTION_DOWN) {
             xpos = me.getX();
@@ -212,21 +222,19 @@ public class ModelViewer extends AppCompatActivity /*Activity*/ {
                 sun.setIntensity(250, 250, 250);
 
                 // Create a texture
-                try {
+                /*try {
                     Texture texture = new Texture(BitmapHelper.rescale(BitmapHelper.convert(
                             Drawable.createFromStream(getResources().getAssets().open(m_modelName + ".jpg"), null)), 64, 64));
-                            //getDrawable(R.mipmap.ic_launcher)), 64, 64));
 
                     if (TextureManager.getInstance().containsTexture("texture"))
                         TextureManager.getInstance().removeTexture("texture");
                     TextureManager.getInstance().addTexture("texture", texture);
                 } catch (IOException e) {
                     e.printStackTrace();
-                }
+                }*/
 
                 try {
-                    //m_model = loadModel("assets/" + m_modelName + ".3ds", m_modelScale);
-                    InputStream opened_model = getResources().getAssets().open(m_modelName + ".3ds");
+                    InputStream opened_model = getResources().getAssets().open(m_modelName + c_modelFormat);
                     m_model = Object3D.mergeAll(Loader.load3DS(opened_model, m_modelScale));
                 } catch (java.io.IOException e) {
                     // TODO Auto-generated catch block
@@ -235,14 +243,14 @@ public class ModelViewer extends AppCompatActivity /*Activity*/ {
                 }
 
                 m_model.calcTextureWrapSpherical();
-                m_model.setTexture("texture");
+                //c_modelFormatm_model.setTexture("texture");
                 m_model.strip();
                 m_model.build();
 
                 world.addObject(m_model);
 
                 Camera cam = world.getCamera();
-                cam.moveCamera(Camera.CAMERA_MOVEOUT, 50);
+                cam.moveCamera(Camera.CAMERA_MOVEOUT, 50 / mScaleFactor);
                 cam.lookAt(m_model.getTransformedCenter());
 
                 SimpleVector sv = new SimpleVector();
@@ -309,4 +317,19 @@ public class ModelViewer extends AppCompatActivity /*Activity*/ {
             return null;
         }
     }
+
+    private class ScaleListener extends ScaleGestureDetector.SimpleOnScaleGestureListener {
+        @Override
+        public boolean onScale(ScaleGestureDetector detector) {
+            mScaleFactor *= detector.getScaleFactor();
+
+            // Don't let the object get too small or too large.
+            mScaleFactor = Math.max(0.1f, Math.min(mScaleFactor, 5.0f));
+
+            //invalidate();
+            return true;
+        }
+    }
 }
+
+
