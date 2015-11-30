@@ -35,7 +35,7 @@ class Finish(tornado.web.RequestHandler):
             raise tornado.web.HTTPError(500,"No such client or set")
 #Получение самой старой заявки, если заявки есть
 class Task(tornado.web.RequestHandler):
-    def post(self):
+    def get(self):
         self.render("table.html",title="Requests",header="Table of requests",listOfRequests=requests.queue)
 #Запрос от воркера на загрузку фотографии. Указывается клиент, номер набора, номер фотографии
 class Download(tornado.web.RequestHandler):
