@@ -71,8 +71,7 @@ public class ModelViewer extends AppCompatActivity /*Activity*/ {
     private boolean isForceRefresh = false;
 
     private String m_modelName = "";
-    private int m_modelScale = 1;
-    private float mScaleFactor = 0.5f;
+    private float m_scaleFactor = 1.f;
 
     ScaleGestureDetector mScaleDetector;
 
@@ -86,6 +85,7 @@ public class ModelViewer extends AppCompatActivity /*Activity*/ {
 
         Intent intent = getIntent();
         m_modelName = intent.getStringExtra(ModelsList.EXTRA_MESSAGE);
+        m_scaleFactor = 1.f;
         isForceRefresh = true;
 
         setTitle(m_modelName);
@@ -235,7 +235,7 @@ public class ModelViewer extends AppCompatActivity /*Activity*/ {
 
                 try {
                     InputStream opened_model = getResources().getAssets().open(m_modelName + c_modelFormat);
-                    m_model = Object3D.mergeAll(Loader.load3DS(opened_model, m_modelScale));
+                    m_model = Object3D.mergeAll(Loader.load3DS(opened_model, m_scaleFactor));
                 } catch (java.io.IOException e) {
                     // TODO Auto-generated catch block
                     e.printStackTrace();
@@ -250,7 +250,7 @@ public class ModelViewer extends AppCompatActivity /*Activity*/ {
                 world.addObject(m_model);
 
                 Camera cam = world.getCamera();
-                cam.moveCamera(Camera.CAMERA_MOVEOUT, 50 / mScaleFactor);
+                cam.moveCamera(Camera.CAMERA_MOVEOUT, 50);
                 cam.lookAt(m_model.getTransformedCenter());
 
                 SimpleVector sv = new SimpleVector();
@@ -280,6 +280,8 @@ public class ModelViewer extends AppCompatActivity /*Activity*/ {
                 m_model.rotateX(touchTurnUp);
                 touchTurnUp = 0;
             }
+
+            m_model.setScale(m_scaleFactor);
 
             fb.clear(back);
             world.renderScene(fb);
@@ -321,10 +323,12 @@ public class ModelViewer extends AppCompatActivity /*Activity*/ {
     private class ScaleListener extends ScaleGestureDetector.SimpleOnScaleGestureListener {
         @Override
         public boolean onScale(ScaleGestureDetector detector) {
-            mScaleFactor *= detector.getScaleFactor();
-
+            m_scaleFactor *= detector.getScaleFactor();
+            if (detector.getScaleFactor() != 1.f) {
+                float a = detector.getScaleFactor();
+            }
             // Don't let the object get too small or too large.
-            mScaleFactor = Math.max(0.1f, Math.min(mScaleFactor, 5.0f));
+            m_scaleFactor = Math.max(0.01f, Math.min(m_scaleFactor, 15.0f));
 
             //invalidate();
             return true;
