@@ -5,7 +5,7 @@ import os
 import tornado.websocket
 import json
 from queueOfRequest import QueueOfRequest
-from workerSocket import WSWorkerHandler
+# from workerSocket import WSWorkerHandler
 
 __UPLOADS__ = os.path.abspath(os.curdir)
 __PORT__=8080
@@ -73,7 +73,7 @@ application = tornado.web.Application([
         (r"/client/result(?P<user>\w+)/(?P<set>\d+)", Result),
         (r"/worker/upload/(?P<user>\w+)/(?P<set>\d+)", UploadResult),
         (r"/client/upload/(?P<user>\w+)/(?P<set>\d+)/(?P<number>\d+)", Upload),
-        (r"/content/(.*)", web.StaticFileHandler, {"path": __UPLOADS__})],debug=True)
+        (r"/content/(.*)", tornado.web.StaticFileHandler, {"path": __UPLOADS__})],debug=True)
 
 
 if __name__ == "__main__":
