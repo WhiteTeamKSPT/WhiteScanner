@@ -72,7 +72,7 @@ application = tornado.web.Application([
         (r"/client/finished/(?P<user>\w+)/(?P<set>\d+)/", Finish),
         (r"/worker/task/", Task),
         (r"/worker/download/(?P<user>\w+)/(?P<set>\d+)/(?P<number>\d+)/", Download),
-        (r"/client/result(?P<user>\w+)/(?P<set>\d+)/", Result),
+        (r"/client/result/(?P<user>\w+)/(?P<set>\d+)/", Result),
         (r"/worker/upload/(?P<user>\w+)/(?P<set>\d+)/", UploadResult),
         (r"/client/upload/(?P<user>\w+)/(?P<set>\d+)/(?P<number>\d+)/", Upload),
         (r"/worker/table/", Table)],debug=True)
