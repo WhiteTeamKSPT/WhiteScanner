@@ -3,21 +3,19 @@ import tornado.ioloop
 import tornado.web
 import os
 import tornado.websocket
-import json
 from queueOfRequest import QueueOfRequest
-# from workerSocket import WSWorkerHandler
+from workerSocket import WSWorkerHandler
 
-__UPLOADS__ = os.path.abspath(os.curdir)
-__PORT__=8080
-__FILENAME__=os.path.join(__UPLOADS__,'pid.txt')
-__PATH_RES__=os.path.join(__UPLOADS__,'result')
 
+__PORT__=8000
+__FILENAME__='pid.txt'
+__PATH_RES__='result'
 #Загрузка клиентом фотографии. Указывается клиент, номер набора, номер фотографии
 class Upload(tornado.web.RequestHandler):
     def post(self,user,set,number):
         if not os.path.isdir(user):
             os.makedirs(user)
-        setPath=os.path.join(__UPLOADS__,user,str(set))
+        setPath=os.path.join(user,str(set))
         if not os.path.isdir(setPath):
             os.makedirs(setPath)
         fname=os.path.join(setPath,str(number))
@@ -35,12 +33,16 @@ class Finish(tornado.web.RequestHandler):
             raise tornado.web.HTTPError(500,"No such client or set")
 #Получение самой старой заявки, если заявки есть
 class Task(tornado.web.RequestHandler):
-    def get(self):
+    def post(self):
+        self.set_header("Content-Type", "application/json")
+        self.finish(requests.lastRequest())
+class Table(tornado.web.RequestHandler):
+    def post(self):
         self.render("table.html",title="Requests",header="Table of requests",listOfRequests=requests.queue)
 #Запрос от воркера на загрузку фотографии. Указывается клиент, номер набора, номер фотографии
 class Download(tornado.web.RequestHandler):
     def get(self,user,set,number):
-        with open(os.path.join(__UPLOADS__ ,user,str(set),str(number)), 'rb') as file:
+        with open(os.path.join(user,str(set),str(number)), 'rb') as file:
             try:
                 image = file.read()
                 self.finish(image)
@@ -49,7 +51,7 @@ class Download(tornado.web.RequestHandler):
 #Запрос от клиента на получение результата. Указывается клиент, номер набора
 class Result(tornado.web.RequestHandler):
     def get(self,user,set):
-        with open(os.path.join(__UPLOADS__ ,'result',user,str(set)), 'rb') as file:
+        with open(os.path.join('result',user,str(set)), 'rb') as file:
             try:
                 message = file.read()
                 self.finish(message)
@@ -67,13 +69,14 @@ class UploadResult(tornado.web.RequestHandler):
             except IOError:
                 raise tornado.web.HTTPError(500)
 application = tornado.web.Application([
-        (r"/client/finished/(?P<user>\w+)/(?P<set>\d+)", Finish),
-        (r"/worker/task", Task),
-        (r"/worker/download/(?P<user>\w+)/(?P<set>\d+)/(?P<number>\d+)", Download),
-        (r"/client/result(?P<user>\w+)/(?P<set>\d+)", Result),
-        (r"/worker/upload/(?P<user>\w+)/(?P<set>\d+)", UploadResult),
-        (r"/client/upload/(?P<user>\w+)/(?P<set>\d+)/(?P<number>\d+)", Upload),
-        (r"/content/(.*)", tornado.web.StaticFileHandler, {"path": __UPLOADS__})],debug=True)
+        (r"/client/finished/(?P<user>\w+)/(?P<set>\d+)/", Finish),
+        (r"/worker/task/", Task),
+        (r"/worker/download/(?P<user>\w+)/(?P<set>\d+)/(?P<number>\d+)/", Download),
+        (r"/client/result/(?P<user>\w+)/(?P<set>\d+)/", Result),
+        (r"/worker/upload/(?P<user>\w+)/(?P<set>\d+)/", UploadResult),
+        (r"/client/upload/(?P<user>\w+)/(?P<set>\d+)/(?P<number>\d+)/", Upload),
+        (r"/worker/table/", Table)],debug=True)
+       # (r"/content/(.*)", tornado.web.StaticFileHandler, {"path": __UPLOADS__})],
 
 
 if __name__ == "__main__":
@@ -84,6 +87,6 @@ if __name__ == "__main__":
         file = open(__FILENAME__, "w")
         file.write(str(os.getpid()))
         file.close()
-    requests=QueueOfRequest(__UPLOADS__)
+    requests=QueueOfRequest()
     application.listen(__PORT__)
     tornado.ioloop.IOLoop.instance().start()

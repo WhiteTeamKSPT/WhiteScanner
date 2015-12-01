@@ -48,7 +48,7 @@ public class ModelViewer extends AppCompatActivity /*Activity*/ {
     // Used to handle pause and resume...
     private static ModelViewer master = null;
 
-    private static String c_modelFormat = ".3ds";
+    private static String c_modelFormat = ".obj"; //".3ds";
 
     private GLSurfaceView mGLView;
     private MyRenderer renderer = null;
@@ -235,7 +235,8 @@ public class ModelViewer extends AppCompatActivity /*Activity*/ {
 
                 try {
                     InputStream opened_model = getResources().getAssets().open(m_modelName + c_modelFormat);
-                    m_model = Object3D.mergeAll(Loader.load3DS(opened_model, m_scaleFactor));
+                    m_model = Object3D.mergeAll(Loader.loadOBJ(opened_model, null, m_scaleFactor));
+                    //m_model = Object3D.mergeAll(Loader.load3DS(opened_model, m_scaleFactor));
                 } catch (java.io.IOException e) {
                     // TODO Auto-generated catch block
                     e.printStackTrace();

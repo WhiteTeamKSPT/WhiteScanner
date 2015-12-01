@@ -1,0 +1,21 @@
+<!DOCTYPE FilterScript>
+<FilterScript>
+ <filter name="Compute normals for point sets">
+  <Param tooltip="The number of neighbors used to estimate normals." description="Neighbour num" type="RichInt" value="16" name="K"/>
+  <Param tooltip="The number of smoothing iteration done on the p used to estimate and propagate normals." description="Smooth Iteration" type="RichInt" value="0" name="smoothIter"/>
+  <Param tooltip="If the 'viewpoint' (i.e. scanner position) is known, it can be used to disambiguate normals orientation, so that all the normals will be oriented in the same direction." description="Flip normals w.r.t. viewpoint" type="RichBool" value="false" name="flipFlag"/>
+  <Param tooltip="The viewpoint position can be set by hand (i.e. getting the current viewpoint) or it can be retrieved from mesh camera, if the viewpoint position is stored there." description="Viewpoint Pos." type="RichPoint3f" name="viewPos" x="0" y="0" z="0"/>
+ </filter>
+ <filter name="Surface Reconstruction: Ball Pivoting">
+  <Param tooltip="The radius of the ball pivoting (rolling) over the set of points. Gaps that are larger than the ball radius will not be filled; similarly the small pits that are smaller than the ball radius will be filled." min="0" max="8.71286" description="Pivoting Ball radius (0 autoguess)" type="RichAbsPerc" value="0.0871286" name="BallRadius"/>
+  <Param tooltip="To avoid the creation of too small triangles, if a vertex is found too close to a previous one, it is clustered/merged with it." description="Clustering radius (% of ball radius)" type="RichFloat" value="20" name="Clustering"/>
+  <Param tooltip="If we encounter a crease angle that is too large we should stop the ball rolling" description="Angle Threshold (degrees)" type="RichFloat" value="90" name="CreaseThr"/>
+  <Param tooltip="if true all the initial faces of the mesh are deleted and the whole surface is rebuilt from scratch, other wise the current faces are used as a starting point. Useful if you run multiple times the algorithm with an incrasing ball radius." description="Delete intial set of faces" type="RichBool" value="false" name="DeleteFaces"/>
+ </filter>
+ <filter name="Surface Reconstruction: Ball Pivoting">
+  <Param tooltip="The radius of the ball pivoting (rolling) over the set of points. Gaps that are larger than the ball radius will not be filled; similarly the small pits that are smaller than the ball radius will be filled." min="0" max="8.71286" description="Pivoting Ball radius (0 autoguess)" type="RichAbsPerc" value="0.348514" name="BallRadius"/>
+  <Param tooltip="To avoid the creation of too small triangles, if a vertex is found too close to a previous one, it is clustered/merged with it." description="Clustering radius (% of ball radius)" type="RichFloat" value="20" name="Clustering"/>
+  <Param tooltip="If we encounter a crease angle that is too large we should stop the ball rolling" description="Angle Threshold (degrees)" type="RichFloat" value="90" name="CreaseThr"/>
+  <Param tooltip="if true all the initial faces of the mesh are deleted and the whole surface is rebuilt from scratch, other wise the current faces are used as a starting point. Useful if you run multiple times the algorithm with an incrasing ball radius." description="Delete intial set of faces" type="RichBool" value="false" name="DeleteFaces"/>
+ </filter>
+</FilterScript>
