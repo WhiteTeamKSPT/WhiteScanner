@@ -28,9 +28,11 @@ public class ModelsList extends AppCompatActivity {
         listView = (ListView) findViewById(R.id.modelsList);
 
         // Defined Array values to show in ListView
-        String[] values = new String[] { "ashtray",
-                "coke_can",
-                "skateboard"
+        String[] values = new String[] {
+                "rabbit"
+                //"ashtray",
+                //"coke_can",
+                //"skateboard"
         };
 
         // Define a new Adapter
