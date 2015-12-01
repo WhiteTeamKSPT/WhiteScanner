@@ -15,7 +15,7 @@
                 <td>{{ req['user'] }}</td><td>{{ req['set'] }}</td><td>{{ req['size'] }}</td>
                     <td>
                         {% for im in req['list'] %}
-                        <img width="100" src=/content/{{im}}>
+                        <img width="100" src={{im}}>
                         {% end %}
                     </td>
                 </tr>
