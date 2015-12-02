@@ -2,18 +2,17 @@ __author__ = 'pitochka'
 
 import subprocess
 import platform
+import locale
+import os
 
 class SFM:
-    def __init__(self, dir, file, SFMdir, options = 'sfm'):
-        self.options = options
-        self.input_dir = dir
-        self.output_file = file
+    def __init__(self, input_dir, output_file, SFMdir, options = 'sfm'):
         self.SFMdir = SFMdir
 
         if (platform.system() == 'Linux'):
-            self.cmd = './VisualSFM ' + str(self.options) +  ' ' + str(self.input_dir) + ' ' + str(self.output_file)
+            self.cmd = './VisualSFM ' + options +  ' ' + input_dir + ' ' + output_file
         elif (platform.system() == 'Windows'):
-            self.cmd = 'VisualSFM.exe ' + str(self.options) +  ' ' + str(self.input_dir) + ' ' + str(self.output_file)
+            self.cmd = 'VisualSFM.exe ' + options +  ' ' + input_dir + ' ' + output_file
         else:
             print ('unsupported OS ', platform.system())
             exit(1)
@@ -68,4 +67,62 @@ class SFM:
         #p = subprocess.call(, shell = True)
         p = subprocess.call(self.cmd, shell = True, cwd = self.SFMdir)
 
+class convert():
+    def __init__(self, ifilename, ofilename):
+        self.ifilename = ifilename
+        self.ofilename = ofilename
 
+    def __call__(self):
+        #locale.setlocale(locale.LC_ALL, 'C')
+        ifile = open(self.ifilename, 'r')
+        ofile = open(self.ofilename, "w+")
+
+        # Searching for number of points
+        line = ifile.readline()
+        line = ifile.readline()
+        line = ifile.readline()
+
+        while not line.isspace():
+            line = ifile.readline()
+        line = ifile.readline()
+        numberofpoints = int(line)
+
+        # Writing of ply header
+        ofile.writelines('ply\n')
+        ofile.writelines('format ascii 1.0\n')
+        ofile.writelines('element vertex %i\n' %numberofpoints)
+        ofile.writelines('property float x\n')
+        ofile.writelines('property float y\n')
+        ofile.writelines('property float z\n')
+        ofile.writelines('property uchar diffuse_red\n')
+        ofile.writelines('property uchar diffuse_green\n')
+        ofile.writelines('property uchar diffuse_blue\n')
+        ofile.writelines('end_header\n')
+
+        for i in range(1, numberofpoints):
+            line = ifile.readline().split()
+            p = line[0:3]
+            c = line[3:6]
+            ofile.write("%s %s %s %s %s %s\n"%(p[0],p[1],p[2],c[0],c[1],c[2]))
+
+        print 'convertion completed.'
+        #os.remove(self.ifilename)
+
+class triangulate():
+    def __init__(self, ifilename, ofilename, scriptname):
+        self.ifilename = ifilename
+        if (platform.system() == 'Linux'):
+            self.cmd = 'meshlabserver ' + ' -i ' + ifilename + ' -o ' + ofilename + ' -s ' + scriptname
+        elif (platform.system() == 'Windows'):
+            self.cmd = 'meshlabserver.exe ' + ' -i ' + ifilename + ' -o ' + ofilename + ' -s ' + scriptname
+        else:
+            print ('unsupported OS ', platform.system())
+            exit(1)
+
+    def __call__(self):
+        PIPE = subprocess.PIPE
+        print self.cmd
+        #p = subprocess.call(, shell = True)
+        p = subprocess.call(self.cmd, shell = True)
+        print 'triangulation completed.'
+        os.remove(self.ifilename)

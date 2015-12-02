@@ -4,10 +4,13 @@ import requests
 import os
 from time import sleep
 
-__SERVER__ = 'http://whiteteam.cloudapp.com:8000'
+__SERVER__ = 'http://whiteteam.cloudapp.net:8080'
 __TASKS__  = '/worker/tasks'
 __IMAGES__ = '/worker/download'
-__UPLOADS__ = '/home/pitochka/server/Input'
+__MODELS__ = '/worler/upload/'
+__DOWNLOADS__ = '/home/pitochka/server/Input'
+__UPLOADS__ = '/home/pitochka/server/Output/'
+
 
 class getTask():
     def __init__(self):
@@ -35,7 +38,7 @@ class getImages():
         pass
 
     def __call__(self, user, set, size):
-        setPath = os.path.join(__UPLOADS__, user)
+        setPath = os.path.join(__DOWNLOADS__, user)
         if not os.path.isdir(setPath):
             os.makedirs(setPath)
 
@@ -43,3 +46,15 @@ class getImages():
         if not os.path.isdir(setPath):
             os.makedirs(setPath)
 
+class loadModel():
+    def __init__(self, user, set, filename):
+        self.user = user + '/'
+        self.set = set + '/'
+        self.filename = filename
+
+    def __call__(self):
+        print __UPLOADS__ + self.user + self.set + 'model.nvm'
+        print __SERVER__ + __MODELS__ + self.user + self.set
+        files = {'model.nvm': open(__UPLOADS__ + self.user + self.set + 'model.nvm', 'rb')}
+        r = requests.post(__SERVER__ + __MODELS__ + self.user + self.set, files=files)
+        print'done.'
