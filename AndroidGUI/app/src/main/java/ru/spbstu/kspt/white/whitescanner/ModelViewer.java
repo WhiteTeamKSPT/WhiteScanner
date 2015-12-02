@@ -48,7 +48,7 @@ public class ModelViewer extends AppCompatActivity /*Activity*/ {
     // Used to handle pause and resume...
     private static ModelViewer master = null;
 
-    private static String c_modelFormat = ".3ds";
+    private static String c_modelFormat = ".obj"; //".3ds";
 
     private GLSurfaceView mGLView;
     private MyRenderer renderer = null;
@@ -71,6 +71,7 @@ public class ModelViewer extends AppCompatActivity /*Activity*/ {
     private boolean isForceRefresh = false;
 
     private String m_modelName = "";
+    private InputStream opened_model;
     private float m_scaleFactor = 1.f;
 
     ScaleGestureDetector mScaleDetector;
@@ -89,6 +90,19 @@ public class ModelViewer extends AppCompatActivity /*Activity*/ {
         isForceRefresh = true;
 
         setTitle(m_modelName);
+
+        try {
+            int number = Integer.parseInt(m_modelName);
+            opened_model = new ByteArrayInputStream(Requests.models.get(number));
+        } catch (NumberFormatException e) {
+            try {
+                opened_model = getResources().getAssets().open(m_modelName + c_modelFormat);
+            } catch (java.io.IOException ex) {
+                ex.printStackTrace();
+                return;
+            }
+        }
+
 
         super.onCreate(savedInstanceState);
 
@@ -233,14 +247,8 @@ public class ModelViewer extends AppCompatActivity /*Activity*/ {
                     e.printStackTrace();
                 }*/
 
-                try {
-                    InputStream opened_model = getResources().getAssets().open(m_modelName + c_modelFormat);
-                    m_model = Object3D.mergeAll(Loader.load3DS(opened_model, m_scaleFactor));
-                } catch (java.io.IOException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                    return;
-                }
+                m_model = Object3D.mergeAll(Loader.loadOBJ(opened_model, null, m_scaleFactor));
+                //m_model = Object3D.mergeAll(Loader.load3DS(opened_model, m_scaleFactor));
 
                 m_model.calcTextureWrapSpherical();
                 //c_modelFormatm_model.setTexture("texture");

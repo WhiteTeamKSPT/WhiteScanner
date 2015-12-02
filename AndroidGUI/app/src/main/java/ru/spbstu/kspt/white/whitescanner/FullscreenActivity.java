@@ -33,6 +33,9 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.Map;
 
 /**
  * An example full-screen activity that shows and hides the system UI (i.e.
@@ -69,7 +72,6 @@ public class FullscreenActivity extends AppCompatActivity {
     private Camera camera;
 
     private ArrayList<byte[]> jpegs = new ArrayList<>();
-    private int setCounter = 1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -306,59 +308,6 @@ public class FullscreenActivity extends AppCompatActivity {
         new UploadPhotoTask().execute();
     }
 
-    private String makeUploadURL(String user, int set, int number) {
-        final String BASE_URL = "http://whiteteam.cloudapp.net:8080";
-        final String UPLOAD_PATH = "/client/upload";
-
-        return BASE_URL + UPLOAD_PATH + "/" + user + "/" + set + "/" + number;
-    }
-
-    private String makeFinishURL(String user, int set) {
-        final String BASE_URL = "http://whiteteam.cloudapp.net:8080";
-        final String UPLOAD_PATH = "/client/finished";
-
-        return BASE_URL + UPLOAD_PATH + "/" + user + "/" + set;
-    }
-
-    // Given a URL, establishes an HttpUrlConnection and retrieves
-    // the web page content as a InputStream, which it returns as
-    // a string.
-    private void doPOST(String uploadURL, @Nullable byte[] payload) throws IOException {
-        OutputStream os = null;
-        Log.d(COMPONENT, "Do POST to " + uploadURL);
-
-        try {
-            URL url = new URL(uploadURL);
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            conn.setReadTimeout(10000 /* milliseconds */);
-            conn.setConnectTimeout(15000 /* milliseconds */);
-            conn.setRequestMethod("POST");
-            conn.setDoOutput(true);
-            if (payload != null) {
-                Log.d(COMPONENT, "Payload size is  " + payload.length);
-                conn.setFixedLengthStreamingMode(payload.length);
-            }
-            // Starts the query
-            conn.connect();
-            os = conn.getOutputStream();
-            if (payload != null) {
-                os.write(payload);
-            }
-            os.flush();
-            os.close();
-
-            int response = conn.getResponseCode();
-            Log.d(COMPONENT, "The response is: " + response);
-
-            // Makes sure that the InputStream is closed after the app is
-            // finished using it.
-        } finally {
-            if (os != null) {
-                os.close();
-            }
-        }
-    }
-
     // Uses AsyncTask to create a task away from the main UI thread. This task takes a
     // URL string and uses it to create an HttpUrlConnection. Once the connection
     // has been established, the AsyncTask downloads the contents of the webpage as
@@ -373,12 +322,13 @@ public class FullscreenActivity extends AppCompatActivity {
             try {
                 for (int i = 0; i < jpegs.size(); i++) {
                     byte[] photo = jpegs.get(i);
-                    String url = makeUploadURL("user", setCounter, i);
-                    doPOST(url, photo);
+                    String url = Network.makeUploadURL("user", Requests.setCounter, i);
+                    Network.doPOST(url, photo);
                 }
-                String finish = makeFinishURL("user", setCounter);
-                doPOST(finish, null);
-                setCounter++;
+                String finish = Network.makeFinishURL("user", Requests.setCounter);
+                Network.doPOST(finish, null);
+                Requests.pendingRequests.add(Requests.setCounter);
+                Requests.setCounter++;
                 jpegs.clear();
             } catch (IOException e) {
                 Log.e(COMPONENT, e.toString());
@@ -393,4 +343,12 @@ public class FullscreenActivity extends AppCompatActivity {
 //            view.setText(result ? "Done" : "Failed");
         }
     }
+}
+
+class Requests {
+    public static int setCounter = 1;
+    public static String username = "user";
+
+    public static LinkedList<Integer> pendingRequests = new LinkedList<>();
+    public static Map<Integer, byte[]> models = new HashMap<>();
 }
