@@ -81,14 +81,6 @@ public class ModelsList extends AppCompatActivity implements SwipeRefreshLayout.
 
                 // ListView Clicked item value
                 String itemValue = (String) listView.getItemAtPosition(position);
-
-//                try {
-//                    int number = Integer.parseInt(itemValue);
-//
-//                } catch (NumberFormatException e) {
-//                    // Show model
-//                    showModel(itemValue);
-//                }
                 showModel(itemValue);
             }
 
