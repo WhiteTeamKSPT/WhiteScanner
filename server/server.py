@@ -4,12 +4,12 @@ import tornado.web
 import os
 import tornado.websocket
 from queueOfRequest import QueueOfRequest
-from workerSocket import WSWorkerHandler
 
 
 __PORT__=8000
 __FILENAME__='pid.txt'
 __PATH_RES__='result'
+readyModels={}
 #Загрузка клиентом фотографии. Указывается клиент, номер набора, номер фотографии
 class Upload(tornado.web.RequestHandler):
     def post(self,user,set,number):
@@ -60,16 +60,36 @@ class Result(tornado.web.RequestHandler):
 #Загрузка от исполнителя 3d модели.Указывается клиент, номер набора
 class UploadResult(tornado.web.RequestHandler):
     def post(self,user,set):
-        if not os.path.isdir(os.path.join(__PATH_RES__,user)):
-            os.makedirs(user)
-        fname=os.path.join(__PATH_RES__,user,str(set))
+        path=os.path.join(__PATH_RES__,user)
+        if not os.path.isdir(path):
+            os.makedirs(path)
+        fname=os.path.join(path,str(set))
         with open(fname, 'wb') as file:
             try:
                 file.write(self.request.body)
+                readyModels[user]=file
             except IOError:
                 raise tornado.web.HTTPError(500)
+class EchoWebSocket(tornado.websocket.WebSocketHandler):
+    clients = {}
+    def open(self,user):
+        if user not in EchoWebSocket.clients:
+            EchoWebSocket.clients[user]= self
+    def on_close(self):
+        for user  in EchoWebSocket.clients.keys():
+            if(self==EchoWebSocket.clients[user]):
+               del(EchoWebSocket.clients[user])
+               return
+    def on_message(self,msg):
+        for user in readyModels.keys():
+            if(EchoWebSocket.clients[user]==self):
+                self.write_message("NOTIFY")
+    def check_origin(self, origin):
+        return True
+
 application = tornado.web.Application([
         (r"/client/finished/(?P<user>\w+)/(?P<set>\d+)/", Finish),
+        (r"/client/connect/(?P<user>\w+)/", EchoWebSocket),
         (r"/worker/task/", Task),
         (r"/worker/download/(?P<user>\w+)/(?P<set>\d+)/(?P<number>\d+)/", Download),
         (r"/client/result/(?P<user>\w+)/(?P<set>\d+)/", Result),
@@ -77,7 +97,6 @@ application = tornado.web.Application([
         (r"/client/upload/(?P<user>\w+)/(?P<set>\d+)/(?P<number>\d+)/", Upload),
         (r"/worker/table/", Table)],debug=True)
        # (r"/content/(.*)", tornado.web.StaticFileHandler, {"path": __UPLOADS__})],
-
 
 if __name__ == "__main__":
 #Запись в файл "pid.txt" pid процесса
