@@ -99,7 +99,7 @@ class convert():
         ofile.writelines('property uchar diffuse_blue\n')
         ofile.writelines('end_header\n')
 
-        for i in range(1, numberofpoints):
+        for i in range(0, numberofpoints):
             line = ifile.readline().split()
             p = line[0:3]
             c = line[3:6]
