@@ -78,9 +78,8 @@ class convert():
         ofile = open(self.ofilename, "w+")
 
         # Searching for number of points
-        line = ifile.readline()
-        line = ifile.readline()
-        line = ifile.readline()
+        for i in range(0, 3):
+            line = ifile.readline()
 
         while not line.isspace():
             line = ifile.readline()
@@ -101,9 +100,9 @@ class convert():
 
         for i in range(0, numberofpoints):
             line = ifile.readline().split()
-            p = line[0:3]
-            c = line[3:6]
-            ofile.write("%s %s %s %s %s %s\n"%(p[0],p[1],p[2],c[0],c[1],c[2]))
+            line = line[0:6]
+            line.append("\n")
+            ofile.writelines(" ".join(line))
 
         print 'convertion completed.'
         #os.remove(self.ifilename)
@@ -125,4 +124,4 @@ class triangulate():
         #p = subprocess.call(, shell = True)
         p = subprocess.call(self.cmd, shell = True)
         print 'triangulation completed.'
-        os.remove(self.ifilename)
+        #os.remove(self.ifilename)
