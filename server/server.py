@@ -39,13 +39,15 @@ class Task(tornado.web.RequestHandler):
 class Table(tornado.web.RequestHandler):
     def post(self):
         self.render("table.html",title="Requests",header="Table of requests",listOfRequests=requests.queue)
-#Запрос от воркера на загрузку фотографии. Указывается клиент, номер набора, номер фотографии
+#Запрос от воркера на загрузку фотографии. Указывается клиент, номер набора, номер фотографии "/content/"
 class Download(tornado.web.RequestHandler):
     def get(self,user,set,number):
-        with open(os.path.join(user,str(set),str(number)), 'rb') as file:
+        path=os.path.join(user,str(set),str(number))
+        with open(path, 'rb') as file:
             try:
                 image = file.read()
                 self.finish(image)
+                requests.get(user,set,number)
             except IOError:
                 raise tornado.web.HTTPError(500, "No such file")
 #Запрос от клиента на получение результата. Указывается клиент, номер набора
@@ -80,10 +82,9 @@ class EchoWebSocket(tornado.websocket.WebSocketHandler):
             if(self==EchoWebSocket.clients[user]):
                del(EchoWebSocket.clients[user])
                return
-    def on_message(self,msg):
+    def write_message(self,mess,binary=False):
         for user in readyModels.keys():
-            if(EchoWebSocket.clients[user]==self):
-                self.write_message("NOTIFY")
+            self.write_message("NOTIFY")
     def check_origin(self, origin):
         return True
 
