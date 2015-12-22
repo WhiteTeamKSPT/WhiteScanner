@@ -74,6 +74,8 @@ public class ModelViewer extends AppCompatActivity /*Activity*/ {
     private InputStream opened_model;
     private float m_scaleFactor = 1.f;
 
+    private boolean m_isTouch;
+
     ScaleGestureDetector mScaleDetector;
 
     protected void onCreate(Bundle savedInstanceState) {
@@ -168,6 +170,50 @@ public class ModelViewer extends AppCompatActivity /*Activity*/ {
 
         mScaleDetector.onTouchEvent(me);
 
+        if (!mScaleDetector.isInProgress()) {
+            if (me.getAction() == MotionEvent.ACTION_DOWN) {
+                xpos = me.getX();
+                ypos = me.getY();
+
+                m_isTouch = true;
+
+                return true;
+            }
+
+            if (me.getAction() == MotionEvent.ACTION_MOVE) {
+                float xd = me.getX() - xpos;
+                float yd = me.getY() - ypos;
+
+                xpos = me.getX();
+                ypos = me.getY();
+
+                touchTurn = xd / -100f;
+                touchTurnUp = yd / -100f;
+
+                m_isTouch = true;
+
+                return true;
+            }
+
+            if (me.getAction() == MotionEvent.ACTION_UP) {
+                xpos = -1;
+                ypos = -1;
+                touchTurn = 0;
+                touchTurnUp = 0;
+
+                m_isTouch = false;
+
+                return true;
+            }
+        } else {
+            m_isTouch = false;
+        }
+
+        return true;
+    }
+
+    /*public boolean onTouchEvent(MotionEvent me) {
+
         if (me.getAction() == MotionEvent.ACTION_DOWN) {
             xpos = me.getX();
             ypos = me.getY();
@@ -182,7 +228,7 @@ public class ModelViewer extends AppCompatActivity /*Activity*/ {
             return true;
         }
 
-        if (me.getAction() == MotionEvent.ACTION_MOVE) {
+        if (me.getAction() == MotionEvent.ACTION_MOVE && !mScaleDetector.isInProgress()) {
             float xd = me.getX() - xpos;
             float yd = me.getY() - ypos;
 
@@ -194,6 +240,9 @@ public class ModelViewer extends AppCompatActivity /*Activity*/ {
             return true;
         }
 
+        if (mScaleDetector.onTouchEvent(me))
+            return true;
+
         try {
             Thread.sleep(15);
         } catch (Exception e) {
@@ -201,7 +250,7 @@ public class ModelViewer extends AppCompatActivity /*Activity*/ {
         }
 
         return super.onTouchEvent(me);
-    }
+    }*/
 
     protected boolean isFullscreenOpaque() {
         return true;
