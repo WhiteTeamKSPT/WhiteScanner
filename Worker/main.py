@@ -1,3 +1,4 @@
+# coding=utf8
 __author__ = 'pitochka'
 
 from startSFM import triangulate
@@ -10,7 +11,8 @@ __SFMDIR__ = '/home/pitochka/server/vsfm/vsfm/bin'
 
 #a = SFM(__INPUTDIR__, __OUTPUTFILE__, __SFMDIR__)
 # a.start()
-#a = loadModel('user_pita', '1', 'b')
-a = convert('/home/pitochka/server/Output/rabbit.nvm', '/home/pitochka/server/Output/rabbit.ply')
-#a = triangulate('/home/pitochka/server/Output/rabbit.ply', '/home/pitochka/server/Output/rabbit.obj', '/home/pitochka/server/Output/2.mlx')
+a = getTask() #Главный файл
+#a = convert('/home/pitochka/server/Output/rabbit.nvm', '/home/pitochka/server/Output/rabbit.ply')
 a()
+#b = triangulate('/home/pitochka/server/Output/rabbit.ply', '/home/pitochka/server/Output/rabbit.obj', '/home/pitochka/server/Output/2.mlx')
+#b()
