@@ -44,13 +44,16 @@
                 android:src="@drawable/upload"
                 android:onClick="uploadPhotos" />
 
-            <TextView
-                android:id="@+id/compass_value"
+            <ImageButton
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:adjustViewBounds="true"
+                android:scaleType="fitCenter"
+                android:layout_weight="1"
+                android:id="@+id/sync_icon"
                 style="?metaButtonBarButtonStyle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Abc"
-                />
+                android:src="@drawable/sync"
+                android:onClick="toggleSync" />
 
             <!--<TextView-->
                 <!--android:id="@+id/upload_counter"-->

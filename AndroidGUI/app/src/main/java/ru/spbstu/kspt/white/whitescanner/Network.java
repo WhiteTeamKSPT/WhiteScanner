@@ -9,6 +9,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Created by artyom on 02.12.15.
@@ -19,6 +21,7 @@ public class Network {
     static final String UPLOAD_PATH = "/client/upload";
     static final String FINISH_PATH = "/client/finished";
     static final String RESULT_PATH = "/client/result";
+    static final String MODELS_PATH = "/client/models";
 
     public static String makeUploadURL(String user, int set, int number) {
         return BASE_URL + UPLOAD_PATH + "/" + user + "/" + set + "/" + number + "/";
@@ -30,6 +33,10 @@ public class Network {
 
     public static String makeResultURL(String user, int set) {
         return BASE_URL + RESULT_PATH + "/" + user + "/" + set + "/";
+    }
+
+    public static String makeModelsURL(String user) {
+        return BASE_URL + MODELS_PATH + "/" + user + "/";
     }
 
     // Given a URL, establishes an HttpUrlConnection and retrieves
@@ -111,6 +118,24 @@ public class Network {
         }
         response.data = baos.toByteArray();
         return response;
+    }
+
+    public static Set<Integer> pollModels() {
+        Set<Integer> set = new HashSet<>();
+        try {
+            HttpResponse response = Network.doGET(Network.makeModelsURL(Requests.username));
+            String string = new String(response.data);
+            String[] models = string.split(";");
+            for (String model : models) {
+                if (!model.isEmpty()) {
+                    Integer integer = Integer.parseInt(model);
+                    set.add(integer);
+                }
+            }
+        } catch (Exception e) {
+            Log.d(COMPONENT, "Network issues in service: " + e);
+        }
+        return set;
     }
 }
 

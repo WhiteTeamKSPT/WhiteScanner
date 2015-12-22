@@ -107,19 +107,17 @@ public class ModelsList extends AppCompatActivity implements SwipeRefreshLayout.
 
             // params comes from the execute() call: params[0] is the url.
             try {
-
-                Iterator<Integer> iterator = Requests.pendingRequests.iterator();
-                while (iterator.hasNext()) {
-                    Integer set = iterator.next();
+                Set<Integer> sets = Network.pollModels();
+                sets.removeAll(Requests.models.keySet()); // Remove already fetched
+                for (Integer set: sets) {
                     Log.d(COMPONENT, "Fetching set " + set.toString());
                     String url = Network.makeResultURL("user", set);
                     HttpResponse resp = Network.doGET(url);
                     if (resp.code != 500) {
                         Log.d(COMPONENT, "Set is fetched: " + set.toString());
                         Requests.models.put(set, resp.data);
-                        iterator.remove();
                     } else {
-                        Log.d(COMPONENT, "Set not ready: " + set.toString());
+                        Log.d(COMPONENT, "Set is not yet ready: " + set.toString());
                     }
                 }
             } catch (IOException e) {

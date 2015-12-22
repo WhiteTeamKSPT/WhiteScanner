@@ -5,37 +5,24 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.graphics.Canvas;
-import android.graphics.Color;
 import android.hardware.Camera;
 import android.hardware.SensorManager;
 import android.os.AsyncTask;
-import android.support.annotation.Nullable;
+import android.os.Bundle;
+import android.os.Handler;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
-import android.os.Handler;
 import android.util.Log;
 import android.view.MotionEvent;
-import android.view.Surface;
-import android.view.SurfaceHolder;
-import android.view.SurfaceView;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.FrameLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
 
@@ -69,11 +56,11 @@ public class FullscreenActivity extends AppCompatActivity {
     private boolean mVisible;
     Preview preview;
 
-    private Sensors sensors;
-
     private Camera camera;
 
     private ArrayList<byte[]> jpegs = new ArrayList<>();
+
+    private static boolean serviceStarted = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -82,8 +69,6 @@ public class FullscreenActivity extends AppCompatActivity {
         setContentView(R.layout.activity_fullscreen);
 
         SensorManager sm = (SensorManager)getSystemService(SENSOR_SERVICE);
-
-        sensors = new Sensors(sm, (TextView) findViewById(R.id.compass_value));
 
         mVisible = true;
         mControlsView = findViewById(R.id.fullscreen_content_controls);
@@ -108,10 +93,6 @@ public class FullscreenActivity extends AppCompatActivity {
         // operations to prevent the jarring behavior of controls going away
         // while interacting with the UI.
         findViewById(R.id.dummy_button).setOnTouchListener(mDelayHideTouchListener);
-
-        for (int i = 1; i <= 5; i++) {
-            Requests.pendingRequests.add(i);
-        }
     }
 
     @Override
@@ -173,8 +154,6 @@ public class FullscreenActivity extends AppCompatActivity {
 //                Toast.makeText(this, getString(R.string.camera_not_found), Toast.LENGTH_LONG).show();
 //            }
 //        }
-
-        sensors.registerListener();
     }
 
     private void requestCameraPermission() {
@@ -188,7 +167,6 @@ public class FullscreenActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         preview.stopCamera();
-        sensors.unregisterListener();
         super.onPause();
     }
 
@@ -314,6 +292,18 @@ public class FullscreenActivity extends AppCompatActivity {
         new UploadPhotoTask().execute();
     }
 
+    public void toggleSync(View view) {
+        if (serviceStarted) {
+            stopService(new Intent(this, NewModelsNotifier.class));
+            serviceStarted = false;
+            shortToast("Sync disabled");
+        } else {
+            startService(new Intent(this, NewModelsNotifier.class));
+            serviceStarted = true;
+            shortToast("Sync enabled");
+        }
+    }
+
     // Uses AsyncTask to create a task away from the main UI thread. This task takes a
     // URL string and uses it to create an HttpUrlConnection. Once the connection
     // has been established, the AsyncTask downloads the contents of the webpage as
@@ -333,7 +323,6 @@ public class FullscreenActivity extends AppCompatActivity {
                 }
                 String finish = Network.makeFinishURL("user", Requests.setCounter);
                 Network.doPOST(finish, null);
-                Requests.pendingRequests.add(Requests.setCounter);
                 Requests.setCounter++;
                 jpegs.clear();
             } catch (IOException e) {
@@ -355,6 +344,5 @@ class Requests {
     public static int setCounter = 1;
     public static String username = "user";
 
-    public static Set<Integer> pendingRequests = new HashSet<>();
     public static Map<Integer, byte[]> models = new HashMap<>();
 }

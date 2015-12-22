@@ -27,6 +27,8 @@ import java.util.List;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 
 import android.content.Context;
 import android.hardware.Camera;
@@ -75,7 +77,7 @@ public class Preview extends SurfaceView implements SurfaceHolder.Callback {
         surfaceHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
 
         setKeepScreenOn(true);
-        configureCamera(getResources().getConfiguration());
+        // configureCamera(getResources().getConfiguration());
     }
 
     public void surfaceCreated(SurfaceHolder holder) {
@@ -199,10 +201,12 @@ public class Preview extends SurfaceView implements SurfaceHolder.Callback {
     @SuppressWarnings("WeakerAccess")
     public void stopCamera() {
         try {
-            camera.stopPreview();
-            camera.setPreviewCallback(null);
-            camera.release();
-            camera = null;
+            if (camera != null) {
+                camera.stopPreview();
+                camera.setPreviewCallback(null);
+                camera.release();
+                camera = null;
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
