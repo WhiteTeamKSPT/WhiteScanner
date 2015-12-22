@@ -19,6 +19,7 @@ public class Network {
     static final String UPLOAD_PATH = "/client/upload";
     static final String FINISH_PATH = "/client/finished";
     static final String RESULT_PATH = "/client/result";
+    static final String MODELS_PATH = "/client/models";
 
     public static String makeUploadURL(String user, int set, int number) {
         return BASE_URL + UPLOAD_PATH + "/" + user + "/" + set + "/" + number + "/";
@@ -30,6 +31,10 @@ public class Network {
 
     public static String makeResultURL(String user, int set) {
         return BASE_URL + RESULT_PATH + "/" + user + "/" + set + "/";
+    }
+
+    public static String makeModelsURL(String user) {
+        return BASE_URL + MODELS_PATH + "/" + user + "/";
     }
 
     // Given a URL, establishes an HttpUrlConnection and retrieves
