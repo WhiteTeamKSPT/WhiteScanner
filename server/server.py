@@ -6,7 +6,7 @@ import tornado.websocket
 from queueOfRequest import QueueOfRequest
 import json
 
-__PORT__=8000
+__PORT__=8080
 __FILENAME__='pid.txt'
 __PATH_RES__='result'
 readyModels=[]
@@ -78,7 +78,8 @@ class UploadResult(tornado.web.RequestHandler):
                         readyModels.append(req)
             except IOError:
                 raise tornado.web.HTTPError(500,"Error in the received file")
-        EchoWebSocket.clients[user].write_message("NOTIFY")
+        if user in EchoWebSocket.clients:
+            EchoWebSocket.clients[user].write_message("NOTIFY")
 #Просмотреть готовые модели
 class Models(tornado.web.RequestHandler):
     def post(self, user):
