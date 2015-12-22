@@ -78,11 +78,13 @@ class UploadResult(tornado.web.RequestHandler):
                         readyModels.append(req)
             except IOError:
                 raise tornado.web.HTTPError(500,"Error in the received file")
+        EchoWebSocket.clients[user].write_message("NOTIFY")
 #Просмотреть готовые модели
 class Models(tornado.web.RequestHandler):
-    def post(self):
+    def post(self, user):
         self.set_header("Content-Type", "text/plain")
-        self.finish(';'.join(readyModels))
+        sets = [r['set'] for r in readyModels if r['user'] == user]
+        self.finish(';'.join(sets))
 
 class EchoWebSocket(tornado.websocket.WebSocketHandler):
     clients = {}
@@ -111,7 +113,7 @@ application = tornado.web.Application([
         (r"/worker/upload/(?P<user>\w+)/(?P<set>\d+)/", UploadResult),
         (r"/client/upload/(?P<user>\w+)/(?P<set>\d+)/(?P<number>\d+)/", Upload),
         (r"/worker/table/", Table),
-        (r"/client/models/", Models),
+        (r"/client/models/(?P<user>\w+)/", Models),
         (r"/content/(.*)", tornado.web.StaticFileHandler, {'path':__UPLOADS__})],debug=True)
 
 if __name__ == "__main__":
