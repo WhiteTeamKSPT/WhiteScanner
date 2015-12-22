@@ -81,8 +81,8 @@ class UploadResult(tornado.web.RequestHandler):
 #Просмотреть готовые модели
 class Models(tornado.web.RequestHandler):
     def post(self):
-        self.set_header("Content-Type", "application/json")
-        self.finish(json.dumps(readyModels))
+        self.set_header("Content-Type", "text/plain")
+        self.finish(';'.join(readyModels))
 
 class EchoWebSocket(tornado.websocket.WebSocketHandler):
     clients = {}
