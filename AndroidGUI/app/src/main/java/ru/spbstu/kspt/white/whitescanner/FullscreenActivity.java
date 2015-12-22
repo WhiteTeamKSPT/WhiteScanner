@@ -93,10 +93,6 @@ public class FullscreenActivity extends AppCompatActivity {
         // operations to prevent the jarring behavior of controls going away
         // while interacting with the UI.
         findViewById(R.id.dummy_button).setOnTouchListener(mDelayHideTouchListener);
-
-        for (int i = 1; i <= 5; i++) {
-            Requests.pendingRequests.add(i);
-        }
     }
 
     @Override
@@ -327,7 +323,6 @@ public class FullscreenActivity extends AppCompatActivity {
                 }
                 String finish = Network.makeFinishURL("user", Requests.setCounter);
                 Network.doPOST(finish, null);
-                Requests.pendingRequests.add(Requests.setCounter);
                 Requests.setCounter++;
                 jpegs.clear();
             } catch (IOException e) {
@@ -349,6 +344,5 @@ class Requests {
     public static int setCounter = 1;
     public static String username = "user";
 
-    public static Set<Integer> pendingRequests = new HashSet<>();
     public static Map<Integer, byte[]> models = new HashMap<>();
 }

@@ -201,10 +201,12 @@ public class Preview extends SurfaceView implements SurfaceHolder.Callback {
     @SuppressWarnings("WeakerAccess")
     public void stopCamera() {
         try {
-            camera.stopPreview();
-            camera.setPreviewCallback(null);
-            camera.release();
-            camera = null;
+            if (camera != null) {
+                camera.stopPreview();
+                camera.setPreviewCallback(null);
+                camera.release();
+                camera = null;
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }

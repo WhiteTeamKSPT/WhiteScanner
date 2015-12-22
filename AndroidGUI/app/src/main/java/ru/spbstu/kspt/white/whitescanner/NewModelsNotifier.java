@@ -68,21 +68,10 @@ public class NewModelsNotifier extends Service {
     }
 
     void pollModels() {
-        try {
-            HttpResponse response = Network.doGET(Network.makeModelsURL(Requests.username));
-            String string = new String(response.data);
-            String[] models = string.split(";");
-            for (String model : models) {
-                if (!model.isEmpty()) {
-                    Integer integer = Integer.parseInt(model);
-                    if (!sets.contains(integer)) {
-                        sendNotification("New model!", "Check it");
-                    }
-                    sets.add(integer);
-                }
-            }
-        } catch (Exception e) {
-            Log.d(COMPONENT, "Network issues in service: " + e);
+        Set<Integer> new_set = Network.pollModels();
+        if (!sets.containsAll(new_set)) {
+            sendNotification("New model!", "Check it");
+            sets.addAll(new_set);
         }
     }
 
