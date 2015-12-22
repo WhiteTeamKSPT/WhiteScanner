@@ -5,6 +5,9 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Matrix;
 import android.hardware.Camera;
 import android.hardware.SensorManager;
 import android.os.AsyncTask;
@@ -18,7 +21,9 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
+import static android.content.res.Configuration.*;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -43,7 +48,7 @@ public class FullscreenActivity extends AppCompatActivity {
      * If {@link #AUTO_HIDE} is set, the number of milliseconds to wait after
      * user interaction before hiding the system UI.
      */
-    private static final int AUTO_HIDE_DELAY_MILLIS = 3000;
+    private static final int AUTO_HIDE_DELAY_MILLIS = 15000;
 
     /**
      * Some older devices needs a small delay between UI widget updates
@@ -243,7 +248,20 @@ public class FullscreenActivity extends AppCompatActivity {
 
     Camera.PictureCallback jpegCallback = new Camera.PictureCallback() {
         public void onPictureTaken(byte[] data, Camera cam) {
-            jpegs.add(data);
+            byte[] processed_data;
+            if (getResources().getConfiguration().orientation == ORIENTATION_PORTRAIT) {
+                Bitmap b = BitmapFactory.decodeByteArray(data, 0, data.length);
+                Matrix matrix = new Matrix();
+                matrix.setRotate(90);
+                b = Bitmap.createBitmap(b, 0, 0, b.getWidth(), b.getHeight(),
+                        matrix, true);
+                ByteArrayOutputStream os = new ByteArrayOutputStream();
+                b.compress(Bitmap.CompressFormat.JPEG, 97, os);
+                processed_data = os.toByteArray();
+            } else {
+                processed_data = data;
+            }
+            jpegs.add(processed_data);
             shortToast("Got picture number " + Integer.toString(jpegs.size()));
             Log.d(COMPONENT, "onPictureTaken - jpeg");
             preview.camera.startPreview();
