@@ -39,6 +39,10 @@ public class Network {
         return BASE_URL + MODELS_PATH + "/" + user + "/";
     }
 
+    public static String makeWebSocketAddress(String user) {
+        return "ws://whiteteam.cloudapp.net:8080/client/connect/" + user + "/";
+    }
+
     // Given a URL, establishes an HttpUrlConnection and retrieves
     // the web page content as a InputStream, which it returns as
     // a string.
