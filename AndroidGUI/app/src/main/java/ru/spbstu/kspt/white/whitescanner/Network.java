@@ -92,7 +92,7 @@ public class Network {
             response.code = conn.getResponseCode();
             Log.d(COMPONENT, "The response is: " + response.code);
             // TODO
-            if (response.code == 400) {
+            if (response.code == 200) {
                 is = conn.getInputStream();
                 byte[] buffer = new byte[4096];
                 int n;

@@ -34,8 +34,10 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * An example full-screen activity that shows and hides the system UI (i.e.
@@ -106,6 +108,10 @@ public class FullscreenActivity extends AppCompatActivity {
         // operations to prevent the jarring behavior of controls going away
         // while interacting with the UI.
         findViewById(R.id.dummy_button).setOnTouchListener(mDelayHideTouchListener);
+
+        for (int i = 1; i <= 5; i++) {
+            Requests.pendingRequests.add(i);
+        }
     }
 
     @Override
@@ -349,6 +355,6 @@ class Requests {
     public static int setCounter = 1;
     public static String username = "user";
 
-    public static LinkedList<Integer> pendingRequests = new LinkedList<>();
+    public static Set<Integer> pendingRequests = new HashSet<>();
     public static Map<Integer, byte[]> models = new HashMap<>();
 }

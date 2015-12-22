@@ -107,7 +107,8 @@ public class ModelsList extends AppCompatActivity implements SwipeRefreshLayout.
 
             // params comes from the execute() call: params[0] is the url.
             try {
-                Iterator<Integer> iterator = Requests.pendingRequests.listIterator();
+
+                Iterator<Integer> iterator = Requests.pendingRequests.iterator();
                 while (iterator.hasNext()) {
                     Integer set = iterator.next();
                     Log.d(COMPONENT, "Fetching set " + set.toString());
