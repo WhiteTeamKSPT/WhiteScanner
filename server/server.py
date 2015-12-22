@@ -10,6 +10,7 @@ __PORT__=8000
 __FILENAME__='pid.txt'
 __PATH_RES__='result'
 readyModels={}
+__UPLOADS__ = os.path.abspath(os.curdir)
 #Загрузка клиентом фотографии. Указывается клиент, номер набора, номер фотографии
 class Upload(tornado.web.RequestHandler):
     def post(self,user,set,number):
@@ -37,9 +38,9 @@ class Task(tornado.web.RequestHandler):
         self.set_header("Content-Type", "application/json")
         self.finish(requests.lastRequest())
 class Table(tornado.web.RequestHandler):
-    def post(self):
+    def get(self):
         self.render("table.html",title="Requests",header="Table of requests",listOfRequests=requests.queue)
-#Запрос от воркера на загрузку фотографии. Указывается клиент, номер набора, номер фотографии "/content/"
+#Запрос от воркера на загрузку фотографии. Указывается клиент, номер набора, номер фотографии
 class Download(tornado.web.RequestHandler):
     def get(self,user,set,number):
         path=os.path.join(user,str(set),str(number))
@@ -96,13 +97,14 @@ application = tornado.web.Application([
         (r"/client/result/(?P<user>\w+)/(?P<set>\d+)/", Result),
         (r"/worker/upload/(?P<user>\w+)/(?P<set>\d+)/", UploadResult),
         (r"/client/upload/(?P<user>\w+)/(?P<set>\d+)/(?P<number>\d+)/", Upload),
-        (r"/worker/table/", Table)],debug=True)
-       # (r"/content/(.*)", tornado.web.StaticFileHandler, {"path": __UPLOADS__})],
+        (r"/worker/table/", Table),
+        (r"/content/(.*)", tornado.web.StaticFileHandler, {'path':__UPLOADS__})],debug=True)
 
 if __name__ == "__main__":
 #Запись в файл "pid.txt" pid процесса
     if os.path.isfile(__FILENAME__):
         print("Process is launched")
+        print(__UPLOADS__)
     else:
         file = open(__FILENAME__, "w")
         file.write(str(os.getpid()))
