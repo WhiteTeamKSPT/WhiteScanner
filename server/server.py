@@ -82,12 +82,12 @@ class UploadResult(tornado.web.RequestHandler):
             EchoWebSocket.clients[user].write_message("NOTIFY")
 #Просмотреть готовые модели
 class Models(tornado.web.RequestHandler):
-    def post(self, user):
+    def get(self, user):
         self.set_header("Content-Type", "text/plain")
         sets = [r['set'] for r in readyModels if r['user'] == user]
         self.finish(';'.join(sets))
 class Sets(tornado.websocket.WebSocketHandler):
-    def post(self,user):
+    def get(self,user):
         self.set_header("Content-Type", "text/plain")
         sets = [r['set'] for r in requests.queue if r['user'] == user]
         self.finish(';'.join(sets))
