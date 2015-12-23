@@ -86,6 +86,11 @@ class Models(tornado.web.RequestHandler):
         self.set_header("Content-Type", "text/plain")
         sets = [r['set'] for r in readyModels if r['user'] == user]
         self.finish(';'.join(sets))
+class Sets(tornado.websocket.WebSocketHandler):
+    def post(self,user):
+        self.set_header("Content-Type", "text/plain")
+        sets = [r['set'] for r in requests.queue if r['user'] == user]
+        self.finish(';'.join(sets))
 
 class EchoWebSocket(tornado.websocket.WebSocketHandler):
     clients = {}
@@ -115,6 +120,7 @@ application = tornado.web.Application([
         (r"/client/upload/(?P<user>\w+)/(?P<set>\d+)/(?P<number>\d+)/", Upload),
         (r"/worker/table/", Table),
         (r"/client/models/(?P<user>\w+)/", Models),
+        (r"/client/sets/(?P<user>\w+)/", Sets),
         (r"/content/(.*)", tornado.web.StaticFileHandler, {'path':__UPLOADS__})],debug=True)
 
 if __name__ == "__main__":
