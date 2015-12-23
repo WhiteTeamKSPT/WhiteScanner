@@ -78,8 +78,6 @@ class UploadResult(tornado.web.RequestHandler):
                         readyModels.append(req)
             except IOError:
                 raise tornado.web.HTTPError(500,"Error in the received file")
-        if user in EchoWebSocket.clients:
-            EchoWebSocket.clients[user].write_message("NOTIFY")
 #Просмотреть готовые модели
 class Models(tornado.web.RequestHandler):
     def get(self, user):
