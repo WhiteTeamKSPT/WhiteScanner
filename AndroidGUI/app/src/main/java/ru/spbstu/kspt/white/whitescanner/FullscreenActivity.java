@@ -98,6 +98,7 @@ public class FullscreenActivity extends AppCompatActivity {
         // operations to prevent the jarring behavior of controls going away
         // while interacting with the UI.
         findViewById(R.id.dummy_button).setOnTouchListener(mDelayHideTouchListener);
+        new RefreshCounterInitValue().execute();
     }
 
     @Override
@@ -354,6 +355,41 @@ public class FullscreenActivity extends AppCompatActivity {
         protected void onPostExecute(Boolean result) {
 //            TextView view = (TextView) findViewById(R.id.upload_counter);
 //            view.setText(result ? "Done" : "Failed");
+        }
+    }
+
+    private class RefreshCounterInitValue extends AsyncTask<Void, Void, Boolean> {
+
+        @Override
+        protected Boolean doInBackground(Void... params) {
+
+            // params comes from the execute() call: params[0] is the url.
+            try {
+                String finish = Network.makeSetsURL("user");
+                HttpResponse response = Network.doGET(finish);
+                String string = new String(response.data);
+                String[] sets = string.split(";");
+                int maxInt = 0;
+                if (string.length() > 0) {
+                    for (String set : sets) {
+                        if (!set.isEmpty()) {
+                            int number = Integer.parseInt(sets[0]);
+                            maxInt = Math.max(maxInt, number);
+                        }
+                    }
+                    maxInt++;
+                }
+                Requests.setCounter = maxInt;
+            } catch (IOException e) {
+                Log.e(COMPONENT, e.toString());
+                return false;
+            }
+            return true;
+        }
+        // onPostExecute displays the results of the AsyncTask.
+        @Override
+        protected void onPostExecute(Boolean result) {
+            shortToast("Initial set number: " + Integer.toString(Requests.setCounter));
         }
     }
 }

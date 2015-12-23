@@ -22,6 +22,7 @@ public class Network {
     static final String FINISH_PATH = "/client/finished";
     static final String RESULT_PATH = "/client/result";
     static final String MODELS_PATH = "/client/models";
+    static final String SET_PATH = "/client/sets/";
 
     public static String makeUploadURL(String user, int set, int number) {
         return BASE_URL + UPLOAD_PATH + "/" + user + "/" + set + "/" + number + "/";
@@ -37,6 +38,10 @@ public class Network {
 
     public static String makeModelsURL(String user) {
         return BASE_URL + MODELS_PATH + "/" + user + "/";
+    }
+
+    public static String makeSetsURL(String user) {
+        return BASE_URL + SET_PATH + "/" + user + "/";
     }
 
     public static String makeWebSocketAddress(String user) {
